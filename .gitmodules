@@ -1,9 +1,0 @@
-[submodule "gc-l10n-invoice-header"]
-    path = gc-l10n-invoice-header
-    url = https://github.com/gauchocode/gc-l10n-invoice-header.git
-[submodule "gc-odoo-account-tax-recalc"]
-    path = gc-odoo-account-tax-recalc
-    url = https://github.com/gauchocode/gc-odoo-account-tax-recalc.git
-[submodule "gc-odoo-mail-button-removal"]
-    path = gc-odoo-mail-button-removal
-    url = https://github.com/gauchocode/gc-odoo-mail-button-removal.git
