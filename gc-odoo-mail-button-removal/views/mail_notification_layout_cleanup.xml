@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Heredamos la plantilla original -->
+  <template id="mail_notification_layout_cleanup"
+            inherit_id="mail.mail_notification_layout"
+            priority="16">
+    <!-- Eliminamos el <tr> que tenía style="white-space:nowrap;" -->
+    <xpath expr="//td[@valign='center' and @style='white-space:nowrap;']/parent::tr"
+           position="replace"/>
+  </template>
+</odoo>

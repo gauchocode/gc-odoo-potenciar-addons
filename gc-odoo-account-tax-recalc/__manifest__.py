@@ -1,0 +1,12 @@
+{
+    'name': 'Account Move – Control Recalculo Automático de Impuestos',
+    'version': '1.0',
+    'summary': 'Permite al usuario deshabilitar el recálculo automático de tax_totals',
+    'author': 'GauchoCode',
+    'depends': ['account'],
+    'data': [
+        'views/account_move_views.xml',
+    ],
+    'installable': True,
+    'license': 'AGPL-3',
+}

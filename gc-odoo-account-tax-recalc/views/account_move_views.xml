@@ -1,0 +1,32 @@
+<odoo>
+  <record id="view_account_move_form_tax_recalc_control" model="ir.ui.view">
+    <field name="name">account.move.form.tax_recalc_control</field>
+    <field name="model">account.move</field>
+    <field name="inherit_id" ref="account.view_move_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//field[@name='to_check'][1]" position="after">
+        <field name="automatic_tax_recalculation" 
+               widget="boolean_toggle" 
+               options="{'terminology': 'off_on'}"
+               string="Recalcular autom. de impuestos"/>
+      </xpath>
+    </field>
+  </record>
+    <record id="view_account_move_form_tax_recalc_banner" model="ir.ui.view">
+    <field name="name">account.move.form.tax_recalc_banner</field>
+    <field name="model">account.move</field>
+    <field name="inherit_id" ref="account.view_move_form"/>
+    <field name="arch" type="xml">
+      <!-- Insertamos el banner justo debajo de la cabecera -->
+      <xpath expr="//header" position="before">
+        <div
+          class="o_alert o_alert_warning mb-3"
+          role="alert"
+          invisible="'automatic_tax_recalculation' == True"
+        >
+          Recordá guardar los cambios <strong>acá arriba</strong> antes y despues de modificar impuestos.
+        </div>
+      </xpath>
+    </field>
+  </record>
+</odoo>

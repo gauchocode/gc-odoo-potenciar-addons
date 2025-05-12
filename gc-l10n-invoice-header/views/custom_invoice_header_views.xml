@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- Personalización de l10n_ar.custom_header -->
+        <template t-name="custom_ar_header.custom_l10n_ar_header" inherit_id="l10n_ar.custom_header">
+
+            <!-- ❌ Eliminar la línea de website y email -->
+            <xpath expr="//span[contains(@t-out, 'header_address.website')]" position="replace"/>
+
+            <!-- ✅ Reemplazar bloque derecho con fuente 13px y nuevos campos -->
+            <xpath expr="//div[@class='col-6 text-end' and @style='padding-left: 0px;']" position="replace">
+                <div class="col-6 text-end" style="padding-left: 0px; font-size: 13px;">
+                    <t t-if="not pre_printed_report">
+                        <div class="mb-1">
+                            <span t-att-style="'color: %s;' % o.company_id.secondary_color">Nro: </span>
+                            <span t-out="report_number"/>
+                        </div>
+                    </t>
+                    <div class="mb-1">
+                        <span t-att-style="'color: %s;' % o.company_id.secondary_color">Fecha: </span>
+                        <span t-out="report_date" t-options='{"widget": "date"}'/>
+                    </div>
+                    <t t-if="not pre_printed_report">
+                        <div class="mb-1">
+                            <span t-field="o.company_id.l10n_ar_afip_responsibility_type_id"/>
+                            <span t-att-style="'color: %s;' % o.company_id.secondary_color"> - CUIT: </span>
+                            <span t-field="o.company_id.partner_id.l10n_ar_formatted_vat"/>
+                        </div>
+                        <div class="mb-1">
+                            <span t-att-style="'color: %s;' % o.company_id.secondary_color">IIBB: </span>
+                            <span t-out="o.company_id.l10n_ar_gross_income_type == 'exempt' and 'Exento' or o.company_id.l10n_ar_gross_income_number"/>
+                        </div>
+                        <div class="mb-1">
+                            <span t-att-style="'color: %s;' % o.company_id.secondary_color">Inicio de las actividades: </span>
+                            <span t-field="o.company_id.l10n_ar_afip_start_date"/>
+                        </div>
+                        <div t-if="o.invoice_payment_term_id" class="mb-1">
+                            <span t-att-style="'color: %s;' % o.company_id.secondary_color">Plazos de pago: </span>
+                            <span t-field="o.invoice_payment_term_id.name"/>
+                        </div>
+                        <div t-if="o.invoice_date_due" class="mb-1">
+                            <span t-att-style="'color: %s;' % o.company_id.secondary_color">Fecha de vencimiento: </span>
+                            <span t-field="o.invoice_date_due"/>
+                        </div>
+                    </t>
+                </div>
+            </xpath>
+        </template>
+
+        <!-- 🧹 Eliminar campos de vencimiento y plazos de la vista original -->
+            <template t-name="custom_ar_header.remove_terms_from_invoice" inherit_id="l10n_ar.report_invoice_document">
+
+                <!-- Oculta el bloque de "Fecha de vencimiento" -->
+                <xpath expr="//div[@id='informations']//t[@t-if='o.invoice_date_due']" position="replace"/>
+
+                <!-- Oculta el bloque de "Plazos de pago" -->
+                <xpath expr="//div[@id='informations']//t[@t-if='o.invoice_payment_term_id']" position="replace"/>
+
+            </template>
+
+    </data>
+</odoo>
