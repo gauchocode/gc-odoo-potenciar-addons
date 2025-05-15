@@ -1,0 +1,12 @@
+{
+    'name': 'Template de Correo Electrónico segun diario',
+    'version': '16.0.1.0',
+    'summary': 'Permite definir un template de correo electrónico por diario',
+    'author': 'GauchoCode',
+    'depends': ['account'],
+    'data': [
+        'views/account_journal_views.xml',
+    ],
+    'installable': True,
+    'license': 'AGPL-3',
+}

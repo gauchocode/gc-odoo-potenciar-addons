@@ -9,4 +9,6 @@
     ],
     'installable': True,
     'license': 'AGPL-3',
+    'post_init_hook': 'set_default_automatic_tax_recalculation',
+
 }
