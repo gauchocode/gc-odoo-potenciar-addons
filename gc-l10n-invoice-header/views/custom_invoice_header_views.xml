@@ -3,7 +3,7 @@
     <data>
 
         <!-- Personalización de l10n_ar.custom_header -->
-        <template t-name="custom_ar_header.custom_l10n_ar_header" inherit_id="l10n_ar.custom_header">
+        <template t-name="gc-l10n-invoice-header.custom_l10n_ar_header" inherit_id="l10n_ar.custom_header">
 
             <!-- ❌ Eliminar la línea de website y email -->
             <xpath expr="//span[contains(@t-out, 'header_address.website')]" position="replace"/>
@@ -49,7 +49,7 @@
         </template>
 
         <!-- 🧹 Eliminar campos de vencimiento y plazos de la vista original -->
-            <template t-name="custom_ar_header.remove_terms_from_invoice" inherit_id="l10n_ar.report_invoice_document">
+            <template t-name="gc-l10n-invoice-header.remove_terms_from_invoice" inherit_id="l10n_ar.report_invoice_document">
 
                 <!-- Oculta el bloque de "Fecha de vencimiento" -->
                 <xpath expr="//div[@id='informations']//t[@t-if='o.invoice_date_due']" position="replace"/>
