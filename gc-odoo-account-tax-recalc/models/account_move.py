@@ -8,16 +8,31 @@ class AccountMove(models.Model):
 
     automatic_tax_recalculation = fields.Boolean(
         string="Recalcular autom. de impuestos",
-        default=True,
-        #A pedido de Seba:
-        help="Activado: Recalcula automáticamente como el comportamiento nativo.\n Desactivado: Se pueden modificar los valores manualmente. Es indispensable guardar el registro antes de salir."
+        help="Activado: Recalcula automáticamente como el comportamiento nativo.\n"
+             "Desactivado: Se pueden modificar los valores manualmente. Es indispensable guardar el registro antes de salir."
     )
+
+    
     tax_totals_snapshot = fields.Text(
         string="Snapshot JSON de Tax Totals",
         copy=False,
         help="JSON del último tax_totals calculado o editado.",
     )
 
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+
+        # Valor por defecto general: True
+        res.setdefault('automatic_tax_recalculation', True)
+
+        # Si el tipo es factura de proveedor (in_invoice), poner False
+        if res.get('move_type') == 'in_invoice':
+            res['automatic_tax_recalculation'] = False
+
+        return res
+        
     @api.depends(
         'invoice_line_ids.product_id',
         'invoice_line_ids.quantity',

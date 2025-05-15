@@ -19,14 +19,11 @@
     <field name="arch" type="xml">
       <!-- Insertamos el banner justo debajo de la cabecera -->
       <xpath expr="//header" position="before">
-        <div
-          class="o_alert o_alert_warning mb-3"
-          role="alert"
-          invisible="'automatic_tax_recalculation' == True"
-        >
-          Recordá guardar los cambios <strong>acá arriba</strong> antes y despues de modificar impuestos.
+        <div class="o_alert o_alert_warning mb-3" role="alert" attrs="{'invisible': [('automatic_tax_recalculation', '=', True)]}">
+          Recordá guardar los cambios <strong>acá arriba</strong> antes y después de modificar impuestos.
         </div>
       </xpath>
+
     </field>
   </record>
 </odoo>
