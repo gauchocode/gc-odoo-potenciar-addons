@@ -1,0 +1,40 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* gc_odoo_journal_email_template
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0-20240816\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-15 17:25+0000\n"
+"PO-Revision-Date: 2025-05-15 17:25+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: gc_odoo_journal_email_template
+#: model:ir.model,name:gc_odoo_journal_email_template.model_account_invoice_send
+msgid "Account Invoice Send"
+msgstr "Enviar Factura"
+
+#. module: gc_odoo_journal_email_template
+#: model:ir.model.fields,field_description:gc_odoo_journal_email_template.field_account_journal__invoice_mail_template_id
+msgid "Default Email Template for Invoices"
+msgstr "Plantilla por defecto para Facturas"
+
+#. module: gc_odoo_journal_email_template
+#: model:ir.model,name:gc_odoo_journal_email_template.model_account_journal
+msgid "Journal"
+msgstr "Diario"
+
+#. module: gc_odoo_journal_email_template
+#: model:ir.model.fields,help:gc_odoo_journal_email_template.field_account_journal__invoice_mail_template_id
+msgid ""
+"This template will be used by default when sending invoices for this "
+"journal."
+msgstr ""
+"Esta plantilla sera usada por defecto cuando envies facturas para este "
+"diario."
