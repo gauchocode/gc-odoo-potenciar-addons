@@ -1,0 +1,18 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: l10n_ar_default_service_dates 1.0\n"
+"POT-Creation-Date: 2025-04-01 19:17\n"
+"Language: es_AR\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Traducciones de campos
+#. module: l10n_ar_default_service_dates
+#: model:ir.model.fields,field_description:account.move,l10n_ar_afip_service_start
+msgid "Service Start"
+msgstr "Inicio del Servicio"
+
+#. module: l10n_ar_default_service_dates
+#: model:ir.model.fields,field_description:account.move,l10n_ar_afip_service_end
+msgid "Service End"
+msgstr "Fin del Servicio"

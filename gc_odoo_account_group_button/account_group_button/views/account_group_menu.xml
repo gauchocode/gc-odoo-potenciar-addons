@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Acción para mostrar la vista tree de account.group -->
+    <record id="action_account_group_tree" model="ir.actions.act_window">
+        <field name="name">Account Groups</field>
+        <field name="res_model">account.group</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>Define groups of accounts used for reporting purposes.</p>
+        </field>
+    </record>
+
+    <!-- Botón en Configuración > Contabilidad -->
+    <menuitem
+        id="menu_account_group"
+        name="Account Groups"
+        parent="account.account_account_menu"
+        action="action_account_group_tree"
+        sequence="25"
+    />
+</odoo>
