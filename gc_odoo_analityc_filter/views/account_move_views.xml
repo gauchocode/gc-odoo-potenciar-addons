@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_out_invoice_tree_inherit_analityc_filter" model="ir.ui.view">
+        <field name="name">account.move.tree.out.invoice.analityc.filter</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="date" position="after">
+                <field name="analytic_account_ids" optional="hide" widget="many2many_tags" string="Etiquetas analiticas"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_account_move_search_inherit" model="ir.ui.view">
+        <field name="name">account.move.search.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+            <!-- Esto mostrará un input para filtrar por analytic_account_ids -->
+            <field name="analytic_account_ids" string="Etiquetas analiticas"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
