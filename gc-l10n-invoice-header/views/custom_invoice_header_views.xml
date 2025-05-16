@@ -35,6 +35,7 @@
                             <span t-att-style="'color: %s;' % o.company_id.secondary_color">Inicio de las actividades: </span>
                             <span t-field="o.company_id.l10n_ar_afip_start_date"/>
                         </div>
+                         <div t-if="model == 'account.move'">
                         <div t-if="o.invoice_payment_term_id" class="mb-1">
                             <span t-att-style="'color: %s;' % o.company_id.secondary_color">Plazos de pago: </span>
                             <span t-field="o.invoice_payment_term_id.name"/>
@@ -42,6 +43,7 @@
                         <div t-if="o.invoice_date_due" class="mb-1">
                             <span t-att-style="'color: %s;' % o.company_id.secondary_color">Fecha de vencimiento: </span>
                             <span t-field="o.invoice_date_due"/>
+                        </div>
                         </div>
                     </t>
                 </div>
