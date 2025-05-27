@@ -7,7 +7,7 @@
       <field name="subject">Factura ${object.name} - POTENCIAR SGR</field>
       <field name="model_id" ref="account.model_account_move"/>
       <field name="auto_delete" eval="True"/>
-      <field name="report_template" ref="account.account_invoices"/>
+      <field name="report_template" ref="account.account_invoices_without_payment"/>
       <field name="report_name">${(object.name or 'Factura')}</field>
       <field name="body_html" type="html">
 
@@ -34,7 +34,7 @@
       <field name="subject">Factura ${object.name} - POTENCIAR SGR</field>
       <field name="model_id" ref="account.model_account_move"/>
       <field name="auto_delete" eval="True"/>
-      <field name="report_template" ref="account.account_invoices"/>
+      <field name="report_template" ref="account.account_invoices_without_payment"/>
       <field name="report_name">${(object.name or 'Factura')}</field>
       <field name="body_html" type="html">
 
@@ -77,7 +77,7 @@
       <field name="subject">Factura ${object.name} - POTENCIAR SGR</field>
       <field name="model_id" ref="account.model_account_move"/>
       <field name="auto_delete" eval="True"/>
-      <field name="report_template" ref="account.account_invoices"/>
+      <field name="report_template" ref="account.account_invoices_without_payment"/>
       <field name="report_name">${(object.name or 'Factura')}</field>
       <field name="body_html" type="html">
         <div style="margin: 0px; padding: 0px;">
