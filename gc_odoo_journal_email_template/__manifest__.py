@@ -6,6 +6,7 @@
     'depends': ['account','account_ux'],
     'data': [
         'views/account_journal_views.xml',
+        'data/mail_templates.xml',
     ],
     'installable': True,
     'license': 'AGPL-3',
