@@ -1,115 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-<data noupdate="1">
+  <data noupdate="1">
 
+    <!-- PLANTILLA VENTAS #5 MAV -->
     <record id="email_template_factura_mav" model="mail.template">
       <field name="name">Factura - Ventas #5 MAV</field>
-      <field name="email_from">${(user.email or 'administracion@potenciarsgr.com.ar')|safe}</field>
-      <field name="subject">Factura ${object.name} - POTENCIAR SGR</field>
+      <field name="email_from">{{ (user.email or 'administracion@potenciarsgr.com.ar') }}</field>
+      <field name="subject">Factura {{object.name}} - POTENCIAR SGR</field>
       <field name="model_id" ref="account.model_account_move"/>
       <field name="auto_delete" eval="True"/>
       <field name="report_template" ref="account.account_invoices_without_payment"/>
-      <field name="report_name">${(object.name or 'Factura')}</field>
+      <field name="report_name">{{ (object.name or 'Factura') }}</field>
       <field name="body_html" type="html">
-
-        <div style="margin: 0px; padding: 0px;">
-
-        <p>Estimado/a ${object.partner_id.name},</p>
-
-        <p>Aquí le adjuntamos su factura <strong>${object.name}</strong> por un importe total de <strong>${format_amount(object.amount_total, object.currency_id)}</strong> de parte de POTENCIAR SGR.</p>
-
-        <p>Estamos agradecidos de que opere con nosotros.</p>
-
-        <p>Ante cualquier duda o consulta no dude en comunicarse vía mail a <a href="mailto:administracion@potenciarsgr.com.ar">administracion@potenciarsgr.com.ar</a> o telefónicamente al <strong>0810-220-POTE (7683)</strong>.</p>
-
-        <p>Muchas gracias.<br/>TEAM POTENCIAR</p>
-        </div>
-
+<div style="margin: 0px; padding: 0px;">
+  <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;">
+    Estimado/a <t t-out="object.partner_id.name or ''"/>,<br/><br/>
+    Aquí le adjuntamos su factura <span style="font-weight:bold;" t-out="object.name or ''"/> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"/> de parte de <t t-out="object.company_id.name or ''"/>.<br/>
+    <br/>Estamos agradecidos de que opere con nosotros.<br/><br/>
+    Ante cualquier duda o consulta no dude en comunicarse vía mail a <a href="mailto:administracion@potenciarsgr.com.ar">administracion@potenciarsgr.com.ar</a> o telefónicamente al <strong>0810-220-POTE (7683)</strong>.
+  </p>
+</div>
       </field>
     </record>
 
     <!-- PLANTILLA VENTAS #6 PTMOS -->
     <record id="email_template_factura_ptmos" model="mail.template">
       <field name="name">Factura - Ventas #6 PTMOS</field>
-      <field name="email_from">${(user.email or 'administracion@potenciarsgr.com.ar')|safe}</field>
-      <field name="subject">Factura ${object.name} - POTENCIAR SGR</field>
+      <field name="email_from">{{ (user.email or 'administracion@potenciarsgr.com.ar') }}</field>
+      <field name="subject">Factura {{object.name}} - POTENCIAR SGR</field>
       <field name="model_id" ref="account.model_account_move"/>
       <field name="auto_delete" eval="True"/>
       <field name="report_template" ref="account.account_invoices_without_payment"/>
-      <field name="report_name">${(object.name or 'Factura')}</field>
+      <field name="report_name">{{ (object.name or 'Factura') }}</field>
       <field name="body_html" type="html">
-
-        <div style="margin: 0px; padding: 0px;">
-        <p>Estimado/a ${object.partner_id.name},</p>
-
-        <p>Aquí está su factura <strong>${object.name}</strong> por un importe total de <strong>${format_amount(object.amount_total, object.currency_id)}</strong> de parte de POTENCIAR SGR.</p>
-
-        <p>Estamos agradecidos de que opere con nosotros.</p>
-
-        <p>Por favor, en caso de estar adherido a los débitos automáticos en cuenta haga caso omiso a este mail, de lo contrario le informamos a continuación nuestros datos bancarios para que pueda abonar el servicio.</p>
-
-        <p><strong>Datos de cuenta de POTENCIAR SGR</strong></p>
-        <p>
-        CBU: 3220001813003819360031<br/>
-        Alias: POTENCIAR.BIND.SGR<br/>
-        Cuenta: Cuenta Corriente 1-381936/3<br/>
-        CUIT/CUIL: 30714936901
-        </p>
-
-        <p><strong>IMPORTANTE:</strong><br/>
-        El servicio prestado por POTENCIAR SGR corresponde a un otorgamiento de avales, dicho servicio se encuentra exento del Impuesto a las Ganancias. Esta exención se encuentra establecida por el artículo 79 de la ley 24.467:</p>
-
-        <p><em>ARTICULO 79. - Beneficios impositivos...</em></p>
-
-        <p>Es por ello que agradecemos no efectuar retenciones por el impuesto indicado.</p>
-
-        <p>Ante cualquier duda o consulta no dude en comunicarse vía mail a <a href="mailto:administracion@potenciarsgr.com.ar">administracion@potenciarsgr.com.ar</a> o telefónicamente al <strong>0810-220-POTE (7683)</strong>.</p>
-
-        <p>Muchas gracias.<br/>TEAM POTENCIAR</p>
-        </div>
-
+<div style="margin: 0px; padding: 0px;">
+  <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;">
+    Estimado/a <t t-out="object.partner_id.name or ''"/>,<br/><br/>
+    Aquí está su factura <span style="font-weight:bold;" t-out="object.name or ''"/> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"/> de parte de <t t-out="object.company_id.name or ''"/>.<br/><br/>
+    Por favor, en caso de estar adherido a los débitos automáticos en cuenta haga caso omiso a este mail, de lo contrario le informamos a continuación nuestros datos bancarios para que pueda abonar el servicio.
+  </p>
+  <p><strong>Datos de cuenta de POTENCIAR SGR</strong></p>
+  <p>CBU: 3220001813003819360031</p>
+  <p>Alias: POTENCIAR.BIND.SGR</p>
+  <p>Cuenta: Cuenta Corriente 1-381936/3</p>
+  <p>CUIT/CUIL: 30714936901</p>
+  <p><strong style="font-weight:bold;text-decoration:underline;background-color:#ffff28;">IMPORTANTE:</strong></p>
+  <p>El servicio prestado por POTENCIAR SGR corresponde a un otorgamiento de avales, dicho servicio se encuentra exento del Impuesto a las Ganancias. Esta exención se encuentra establecida por el art. 79 de la ley 24.467:</p>
+  <p><em>ARTICULO 79. - Beneficios impositivos...</em></p>
+  <p>Es por ello que agradecemos <strong style="background-color:#ffff28;">no efectuar retenciones</strong> por el impuesto indicado.</p>
+  <p>Ante cualquier duda o consulta, contáctenos a administracion@potenciarsgr.com.ar o al 0810-220-POTE (7683).</p>
+</div>
       </field>
     </record>
 
     <!-- PLANTILLA VENTAS #7 PROT -->
     <record id="email_template_factura_prot" model="mail.template">
       <field name="name">Factura - Ventas #7 PROT</field>
-      <field name="email_from">${(user.email or 'administracion@potenciarsgr.com.ar')|safe}</field>
-      <field name="subject">Factura ${object.name} - POTENCIAR SGR</field>
+      <field name="email_from">{{ (user.email or 'administracion@potenciarsgr.com.ar') }}</field>
+      <field name="subject">Factura {{object.name}} - POTENCIAR SGR</field>
       <field name="model_id" ref="account.model_account_move"/>
       <field name="auto_delete" eval="True"/>
       <field name="report_template" ref="account.account_invoices_without_payment"/>
-      <field name="report_name">${(object.name or 'Factura')}</field>
+      <field name="report_name">{{ (object.name or 'Factura') }}</field>
       <field name="body_html" type="html">
-        <div style="margin: 0px; padding: 0px;">
-    
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Estimado/a ${object.partner_id.name},</p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Aquí está su factura <strong style="box-sizing:border-box;font-weight:bolder;">${object.name}</strong> por un importe total de <strong style="box-sizing:border-box;font-weight:bolder;">${format_amount(object.amount_total, object.currency_id)}</strong> de parte de POTENCIAR SGR.</p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Le agradecemos la confianza depositada en nosotros.</p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Por favor, en caso de estar adherido a los débitos automáticos en cuenta o el sistema de pagos netos de comisiones haga caso omiso a este mail, de lo contrario le informamos a continuación nuestros datos bancarios para que pueda abonar el servicio.</p>
-
-        <p><strong>Datos de cuenta de POTENCIAR SGR</strong></p>
-        <p>
-        CBU: 3220001813003819360031<br/>
-        Alias: POTENCIAR.BIND.SGR<br/>
-        Cuenta: Cuenta Corriente 1-381936/3<br/>
-        CUIT/CUIL: 30714936901
-        </p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;"><strong style="box-sizing:border-box;font-weight:bolder;">IMPORTANTE:</strong><br/>
-        El servicio prestado por POTENCIAR SGR corresponde a un otorgamiento de avales, dicho servicio se encuentra exento del Impuesto a las Ganancias. Esta exención se encuentra establecida por el artículo 79 de la ley 24.467:</p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;"><em>ARTICULO 79. - Beneficios impositivos...</em></p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Es por ello que agradecemos no efectuar retenciones por el impuesto indicado.</p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Ante cualquier duda o consulta no dude en comunicarse vía mail a <a href="mailto:administracion@potenciarsgr.com.ar" style="text-decoration:none;box-sizing:border-box;color:#008f8c;">administracion@potenciarsgr.com.ar</a> o telefónicamente al <strong style="box-sizing:border-box;font-weight:bolder;">0810-220-POTE (7683)</strong>.</p>
-
-        <p style="margin:0px 0 12px 0;box-sizing:border-box;">Muchas gracias.<br/>TEAM POTENCIAR</p>
-        </div>
+<div style="margin: 0px; padding: 0px;">
+  <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;">
+    Estimado/a <t t-out="object.partner_id.name or ''"/>,<br/><br/>
+    Aquí está su factura <span style="font-weight:bold;" t-out="object.name or ''"/> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"/> de parte de <t t-out="object.company_id.name or ''"/>.<br/><br/>
+    Le agradecemos la confianza depositada en nosotros.<br/><br/>
+    Por favor, en caso de estar adherido a débitos automáticos o pagos netos de comisiones haga caso omiso a este mail. De lo contrario, vea nuestros datos bancarios:
+  </p>
+  <p><strong>Datos de cuenta de POTENCIAR SGR</strong></p>
+  <p>CBU: 3220001813003819360031</p>
+  <p>Alias: POTENCIAR.BIND.SGR</p>
+  <p>Cuenta: Cuenta Corriente 1-381936/3</p>
+  <p>CUIT/CUIL: 30714936901</p>
+  <p><strong style="font-weight:bold;text-decoration:underline;background-color:#ffff28;">IMPORTANTE:</strong></p>
+  <p>El servicio prestado por POTENCIAR SGR corresponde a un otorgamiento de avales, dicho servicio se encuentra exento del Impuesto a las Ganancias. Esta exención se encuentra establecida por el art. 79 de la ley 24.467:</p>
+  <p><em>ARTICULO 79. - Beneficios impositivos...</em></p>
+  <p>Es por ello que agradecemos <strong style="background-color:#ffff28;">no efectuar retenciones</strong> por el impuesto indicado.</p>
+  <p>Ante cualquier duda o consulta, contáctenos a administracion@potenciarsgr.com.ar o al 0810-220-POTE (7683).</p>
+</div>
       </field>
     </record>
-    </data>
+
+  </data>
 </odoo>
