@@ -35,9 +35,13 @@
       <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px;">
   <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;">
-    Estimado/a <t t-out="object.partner_id.name or ''"></t>,<br><br>
-    Aquí está su factura <span style="font-weight:bold;" t-out="object.name or ''"></span> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"></span> de parte de <t t-out="object.company_id.name or ''"></t>.</p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br>Estamos agradecidos de que opere con nosotros.<br><br>
-    Por favor, en caso de estar adherido a los débitos automáticos en cuenta haga caso omiso a este mail, de lo contrario le informamos a continuación nuestros datos bancarios para que pueda abonar el servicio.</p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br></p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><strong>Datos de cuenta de POTENCIAR SGR<br><br></strong></p><p>CBU: 3220001813003819360031</p>
+    Estimado/a <t t-out="object.partner_id.name or ''"></t>,<br/><br/>
+    Aquí está su factura <span style="font-weight:bold;" t-out="object.name or ''"></span> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"></span> de parte de <t t-out="object.company_id.name or ''"></t>.</p>
+  <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br/>Estamos agradecidos de que opere con nosotros.<br/><br/>
+    Por favor, en caso de estar adherido a los débitos automáticos en cuenta haga caso omiso a este mail, de lo contrario le informamos a continuación nuestros datos bancarios para que pueda abonar el servicio.</p>
+  <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br/></p>
+  <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><strong>Datos de cuenta de POTENCIAR SGR<br/><br/></strong></p>
+  <p>CBU: 3220001813003819360031</p>
   <p>Alias: POTENCIAR.BIND.SGR</p>
   <p>Cuenta: Cuenta Corriente 1-381936/3</p>
   <p>CUIT/CUIL: 30714936901</p>
@@ -69,10 +73,10 @@ Muchas gracias</p><p>
       <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px;">
   <p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;">
-    Estimado/a <t t-out="object.partner_id.name or ''"></t>,<br><br>
-    Aquí está su factura <span style="font-weight:bold;" t-out="object.name or ''"></span> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"></span> de parte de <t t-out="object.company_id.name or ''"></t>.<br><br>
-    Le agradecemos la confianza depositada en nosotros.<br><br>
-    Por favor, en caso de estar adherido a débitos automáticos o pagos netos de comisiones haga caso omiso a este mail. De lo contrario, vea nuestros datos bancarios:</p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br></p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><strong style="box-sizing:border-box;font-weight:bolder;">Datos de cuenta de POTENCIAR SGR</strong></p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br></p><p style="margin:0px 0 12px 0;box-sizing:border-box;">CBU: 3220001813003819360031</p>
+    Estimado/a <t t-out="object.partner_id.name or ''"></t>,<br/><br/>
+    Aquí está su factura <span style="font-weight:bold;" t-out="object.name or ''"></span> por un importe total de <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''"></span> de parte de <t t-out="object.company_id.name or ''"></t>.<br/><br/>
+    Le agradecemos la confianza depositada en nosotros.<br/><br/>
+    Por favor, en caso de estar adherido a débitos automáticos o pagos netos de comisiones haga caso omiso a este mail. De lo contrario, vea nuestros datos bancarios:</p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br/></p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><strong style="box-sizing:border-box;font-weight:bolder;">Datos de cuenta de POTENCIAR SGR</strong></p><p style="box-sizing:border-box;margin: 0px; padding: 0px; font-size: 13px;"><br/></p><p style="margin:0px 0 12px 0;box-sizing:border-box;">CBU: 3220001813003819360031</p>
   <p style="margin:0px 0 12px 0;box-sizing:border-box;">Alias: POTENCIAR.BIND.SGR</p>
   <p style="margin:0px 0 12px 0;box-sizing:border-box;">Cuenta: Cuenta Corriente 1-381936/3</p>
   <p style="margin:0px 0 12px 0;box-sizing:border-box;">CUIT/CUIL: 30714936901</p>
