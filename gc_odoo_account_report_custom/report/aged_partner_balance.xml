@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_agedpartnerbalance_cuit_tipo_contacto" inherit_id="accounting_pdf_reports.report_agedpartnerbalance">
+        <!-- HEADER: Después de Partners agregamos CUIT y Tipo de Contacto -->
+        <xpath expr="//table/thead/tr[1]/th[1]" position="after">
+            <th>CUIT</th>
+            <th>Tipo de Contacto</th>
+        </xpath>
+        <!-- FILA DE TOTALES: Agregamos celdas vacías después de Cuenta Total -->
+        <xpath expr="//table/thead/tr[2]/th[1]" position="after">
+            <th/>
+            <th/>
+        </xpath>
+        <!-- BODY: Después del nombre del partner mostramos CUIT y Tipo de Contacto -->
+        <xpath expr="//table/tbody/tr/td[1]" position="after">
+            <td>
+                <span t-esc="partner['cuit']"/>
+            </td>
+            <td>
+                <span t-esc="partner['tipo_contacto']"/>
+            </td>
+        </xpath>
+    </template>
+</odoo>
