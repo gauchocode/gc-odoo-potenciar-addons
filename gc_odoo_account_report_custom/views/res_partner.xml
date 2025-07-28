@@ -3,6 +3,7 @@
         <field name="name">res.partner.form.tipo.cliente</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority" eval="15"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
                 <field name="tipo_contacto"/>
@@ -14,6 +15,7 @@
         <field name="name">res.partner.tree.tipo.cliente</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="priority" eval="15"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='display_name']" position="after">
                 <field name="tipo_contacto" optional="hide"/>

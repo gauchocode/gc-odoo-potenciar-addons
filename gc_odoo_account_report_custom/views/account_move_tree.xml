@@ -1,0 +1,29 @@
+<odoo>
+    <!-- 1. Campo invisible en el árbol de facturas de clientes -->
+    <record id="view_out_invoice_tree_inherit_tipo_contacto" model="ir.ui.view">
+        <field name="name">account.move.tree.inherit.tipo.contacto</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='name']" position="after">
+                <field name="tipo_contacto" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- 2. Filtros y agrupaciones en la búsqueda de facturas -->
+    <record id="view_account_invoice_filter_inherit_tipo_contacto" model="ir.ui.view">
+        <field name="name">account.move.search.inherit.tipo.contacto</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='due_date']" position="after">
+                <filter name="tipo_contacto_protector" string="Protector" domain="[('tipo_contacto', '=', 'protector')]"/>
+                <filter name="tipo_contacto_participe" string="Participe" domain="[('tipo_contacto', '=', 'participe')]"/>
+                <filter name="tipo_contacto_otro" string="Otro" domain="[('tipo_contacto', '=', 'otro')]"/>
+                <separator/>
+                <filter string="Grupo por Tipo de Contacto" name="group_by_tipo_contacto" context="{'group_by':'tipo_contacto'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
