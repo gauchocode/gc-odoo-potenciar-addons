@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="account_bna_currencies_search_view" model="ir.ui.view">
+            <field name="name">account.bna.currencies.search</field>
+            <field name="model">account.bna.currencies</field>
+            <field name="arch" type="xml">
+                <search string="BNA Currencies">
+                    <field name="name"/>
+                    <field name="currency_id"/>
+                    <field name="bna_units"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="account_bna_currencies_tree_view" model="ir.ui.view">
+            <field name="name">account.bna.currencies.tree</field>
+            <field name="model">account.bna.currencies</field>
+            <field name="arch" type="xml">
+                <tree string="BNA Currencies" editable="top">
+                    <field name="name"/>
+                    <field name="currency_id"/>
+                    <field name="property_read_rate" widget="boolean_toggle"/>
+                    <field name="bna_units"/>
+                </tree>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="account_res_config_settings_view_form_bna" model="ir.ui.view">
+            <field name="name">account.res.config.settings.view.form.bna</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Insertamos después del contenedor de "main_currency" -->
+                <div id="main_currency" position="after">
+                    <div class="col-12 col-lg-6 o_setting_box" id="bna_currency_settings">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">Banco Nación Argentina (BNA)</span>
+                            <div class="text-muted">
+                                Configuración de cotización automática usando el BNA
+                            </div>
+                            <div class="content-group mt16">
+                                <div class="row">
+                                    <label for="l10n_ar_bna_rate_type" class="col-4 o_light_label"/>
+                                    <field name="l10n_ar_bna_rate_type"/>
+                                </div>
+                                <div class="row">
+                                    <label for="l10n_ar_bna_currency_value" class="col-4 o_light_label"/>
+                                    <field name="l10n_ar_bna_currency_value"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

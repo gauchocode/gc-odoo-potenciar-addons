@@ -1,0 +1,86 @@
+<odoo>
+    <data noupdate="1">
+
+        <!-- Set ARS as base -->
+        <record id="ARS_base_rate" model="res.currency.rate">
+            <field name="name" eval="(DateTime.now().replace(minute=0)).strftime('%Y-%m-%d')" />
+            <field name="currency_id" ref="base.ARS"/>
+            <field name="company_rate">1.0</field>
+            <field name="company_id" eval="False" />
+        </record>
+
+        <!-- BNA Currencies -->
+        <record id="bna_USD" model="account.bna.currencies">
+            <field name="name">Dolar U.S.A</field>
+            <field name="currency_id" ref="base.USD"/>
+            <field name="bna_units">1</field>
+        </record>
+
+        <record id="bna_GBP" model="account.bna.currencies">
+            <field name="name">Libra Esterlina</field>
+            <field name="currency_id" ref="base.GBP"/>
+            <field name="bna_units">1</field>
+        </record>
+
+        <record id="bna_EUR" model="account.bna.currencies">
+            <field name="name">Euro</field>
+            <field name="currency_id" ref="base.EUR"/>
+            <field name="bna_units">1</field>
+        </record>
+
+        <record id="bna_BRL" model="account.bna.currencies">
+            <field name="name">Real</field>
+            <field name="currency_id" ref="base.BRL"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_CHF" model="account.bna.currencies">
+            <field name="name">Franco Suizos</field>
+            <field name="currency_id" ref="base.CHF"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_JPY" model="account.bna.currencies">
+            <field name="name">YENES</field>
+            <field name="currency_id" ref="base.JPY"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_CAD" model="account.bna.currencies">
+            <field name="name">Dolares Canadienses</field>
+            <field name="currency_id" ref="base.CAD"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_DKK" model="account.bna.currencies">
+            <field name="name">Coronas Danesas</field>
+            <field name="currency_id" ref="base.DKK"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_NOK" model="account.bna.currencies">
+            <field name="name">Coronas Noruegas</field>
+            <field name="currency_id" ref="base.NOK"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_SEK" model="account.bna.currencies">
+            <field name="name">Coronas Suecas</field>
+            <field name="currency_id" ref="base.SEK"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_CNY" model="account.bna.currencies">
+            <field name="name">Yuan</field>
+            <field name="currency_id" ref="base.CNY"/>
+            <field name="bna_units">100</field>
+        </record>
+
+        <record id="bna_AUD" model="account.bna.currencies">
+            <field name="name">Dolar Australiano</field>
+            <field name="currency_id" ref="base.AUD"/>
+            <field name="bna_units">1</field>
+        </record>
+
+    </data>
+</odoo>

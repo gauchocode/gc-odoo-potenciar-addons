@@ -1,0 +1,165 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* tnet_l10n_ar_bna
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-02-16 01:45+0000\n"
+"PO-Revision-Date: 2024-02-16 01:45+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model,name:tnet_l10n_ar_bna.model_account_bna_currencies
+msgid "Account BNA Currencies"
+msgstr "Monedas BNA"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.actions.act_window,name:tnet_l10n_ar_bna.action_bna_currencies
+#: model:ir.ui.menu,name:tnet_l10n_ar_bna.bna_currencies_submenu
+#: model_terms:ir.ui.view,arch_db:tnet_l10n_ar_bna.account_bna_currencies_search_view
+#: model_terms:ir.ui.view,arch_db:tnet_l10n_ar_bna.account_bna_currencies_tree_view
+msgid "BNA Currencies"
+msgstr "Monedas BNA"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__name
+msgid "BNA Currency"
+msgstr "Moneda BNA"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields.selection,name:tnet_l10n_ar_bna.selection__res_company__currency_provider__bna
+msgid "Banco de la Nación Argentina"
+msgstr ""
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields.selection,name:tnet_l10n_ar_bna.selection__res_company__l10n_ar_bna_rate_type__billete
+msgid "Billete"
+msgstr ""
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model,name:tnet_l10n_ar_bna.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields.selection,name:tnet_l10n_ar_bna.selection__res_company__l10n_ar_bna_currency_value__compra
+msgid "Compra"
+msgstr ""
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model,name:tnet_l10n_ar_bna.model_res_config_settings
+msgid "Config Settings"
+msgstr "Configuración"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__create_date
+msgid "Created on"
+msgstr "Creado"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__display_name
+msgid "Display Name"
+msgstr "Nombre a mostrar"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields.selection,name:tnet_l10n_ar_bna.selection__res_company__l10n_ar_bna_rate_type__divisa
+msgid "Divisa"
+msgstr ""
+
+#. module: tnet_l10n_ar_bna
+#: code:addons/tnet_l10n_ar_bna/models/res_company.py:0
+#, python-format
+msgid "Error retrieving info from BNA. No data retrieved from %s"
+msgstr "Error leyendo información desde BNA. Datos no recibidos desde %s"
+
+#. module: tnet_l10n_ar_bna
+#: code:addons/tnet_l10n_ar_bna/models/res_company.py:0
+#, python-format
+msgid "Error: Web Service [%s] does not exist or it is non accesible !"
+msgstr "Error: Web Service [%s] no existe o no es accesible!"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__id
+msgid "ID"
+msgstr ""
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies____last_update
+msgid "Last Modified on"
+msgstr "Ultima modificación"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__write_uid
+msgid "Last Updated by"
+msgstr "Ultima actualización por"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__write_date
+msgid "Last Updated on"
+msgstr "Ultima actualización"
+
+#. module: tnet_l10n_ar_bna
+#: code:addons/tnet_l10n_ar_bna/models/res_company.py:0
+#, python-format
+msgid "No \"billetes\" found! Bad site structure! Please check connection!"
+msgstr "Tag \"billetes\" no encontrado! Estructura inválida!"
+
+#. module: tnet_l10n_ar_bna
+#: code:addons/tnet_l10n_ar_bna/models/res_company.py:0
+#, python-format
+msgid "No \"divisas\" found! Bad site structure! Please check connection!"
+msgstr "Tag \"divisas\" no encontrado! Estructura inválida!"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__currency_id
+msgid "Odoo Currency"
+msgstr "Moneda Odoo"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields.selection,name:tnet_l10n_ar_bna.selection__res_company__l10n_ar_bna_currency_value__promedio
+msgid "Promedio Compra-Venta"
+msgstr ""
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_res_company__l10n_ar_bna_rate_type
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_res_config_settings__l10n_ar_bna_rate_type
+msgid "Rate"
+msgstr "Cotización"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__property_read_rate
+msgid "Read Rate?"
+msgstr "Leer?"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_res_company__currency_provider
+msgid "Service Provider"
+msgstr "Proveedor de servicio"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_account_bna_currencies__bna_units
+msgid "Units listed in BNA"
+msgstr "Unidades BNA"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_res_company__l10n_ar_bna_currency_value
+#: model:ir.model.fields,field_description:tnet_l10n_ar_bna.field_res_config_settings__l10n_ar_bna_currency_value
+msgid "Value"
+msgstr "Valor"
+
+#. module: tnet_l10n_ar_bna
+#: model:ir.model.fields.selection,name:tnet_l10n_ar_bna.selection__res_company__l10n_ar_bna_currency_value__venta
+msgid "Venta"
+msgstr ""
