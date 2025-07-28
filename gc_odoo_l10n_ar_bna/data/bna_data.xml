@@ -11,7 +11,7 @@
 
         <!-- BNA Currencies -->
         <record id="bna_USD" model="account.bna.currencies">
-            <field name="name">Dolar U.S.A</field>
+            <field name="name">USD</field>
             <field name="currency_id" ref="base.USD"/>
             <field name="bna_units">1</field>
         </record>
