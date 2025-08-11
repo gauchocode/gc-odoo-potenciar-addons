@@ -7,6 +7,7 @@ class ResPartner(models.Model):
         [
             ('protector', 'PROTECTOR'),
             ('participe', 'PARTICIPE'),
+            ('productor', 'PRODUCTOR'),
             ('otro', 'OTRO'),
         ],
         string="Tipo de Contacto",

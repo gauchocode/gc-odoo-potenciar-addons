@@ -1,5 +1,5 @@
 {
-    'name': 'Reportes Personalizados de Cuenta',
+    'name': 'Personalización de Reportes de Cuenta',
     'version': '16.0.1.0.1',
     'summary': 'Permite personalizar reportes de cuenta',
     'author': 'GauchoCode',

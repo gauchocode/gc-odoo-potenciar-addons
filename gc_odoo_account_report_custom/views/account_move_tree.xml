@@ -20,9 +20,10 @@
             <xpath expr="//filter[@name='due_date']" position="after">
                 <filter name="tipo_contacto_protector" string="Protector" domain="[('tipo_contacto', '=', 'protector')]"/>
                 <filter name="tipo_contacto_participe" string="Participe" domain="[('tipo_contacto', '=', 'participe')]"/>
+                <filter name="tipo_contacto_productor" string="Productor" domain="[('tipo_contacto', '=', 'productor')]"/>
                 <filter name="tipo_contacto_otro" string="Otro" domain="[('tipo_contacto', '=', 'otro')]"/>
                 <separator/>
-                <filter string="Grupo por Tipo de Contacto" name="group_by_tipo_contacto" context="{'group_by':'tipo_contacto'}"/>
+                <filter string="Tipo de Contacto" name="group_by_tipo_contacto" context="{'group_by':'tipo_contacto'}"/>
             </xpath>
         </field>
     </record>
