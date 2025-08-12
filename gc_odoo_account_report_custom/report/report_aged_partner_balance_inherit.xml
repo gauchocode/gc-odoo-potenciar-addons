@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+  <!-- 1) SUMMARY TABLE: headers -->
+  <template id="afr_aged_partner_add_cols_headers"
+            inherit_id="account_financial_report.report_aged_partner_balance_lines_header">
+    <xpath expr="//div[@class='act_as_thead']/div[@class='act_as_row labels']/div[contains(@class,'act_as_cell')][1]"
+           position="after">
+      <div class="act_as_cell">VAT</div>
+      <div class="act_as_cell">Tipo Contacto</div>
+    </xpath>
+  </template>
+
+  <!-- 2) SUMMARY TABLE: partner rows -->
+  <template id="afr_aged_partner_add_cols_rows"
+            inherit_id="account_financial_report.report_aged_partner_balance_lines">
+    <xpath expr="//div[@class='act_as_row lines']/div[contains(@class,'act_as_cell')][1]"
+           position="after">
+      <div class="act_as_cell left">
+        <span t-esc="partner.get('vat') or ''"/>
+      </div>
+      <div class="act_as_cell left">
+        <span t-esc="partner.get('tipo_contacto') or ''"/>
+      </div>
+    </xpath>
+  </template>
+
+  <!-- 3) DETAILED TABLE: headers -->
+  <template id="afr_aged_partner_add_cols_ml_headers"
+            inherit_id="account_financial_report.report_aged_partner_balance_move_lines">
+    <xpath expr="//div[@class='act_as_thead']/div[@class='act_as_row labels']/div[contains(@class,'act_as_cell')][5]"
+           position="after">
+      <div class="act_as_cell">VAT</div>
+      <div class="act_as_cell">Tipo Contacto</div>
+    </xpath>
+  </template>
+
+  <!-- 4) DETAILED TABLE: line rows -->
+  <template id="afr_aged_partner_add_cols_ml_rows"
+            inherit_id="account_financial_report.report_aged_partner_balance_move_lines">
+    <xpath expr="//div[@class='act_as_row lines']/div[contains(@class,'act_as_cell')][5]"
+           position="after">
+      <div class="act_as_cell left">
+        <span t-esc="(line.get('vat') if isinstance(line, dict) else '') or ''"/>
+      </div>
+      <div class="act_as_cell left">
+        <span t-esc="(line.get('tipo_contacto') if isinstance(line, dict) else '') or ''"/>
+      </div>
+    </xpath>
+  </template>
+
+</odoo>

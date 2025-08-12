@@ -8,6 +8,7 @@
         "report/aged_partner_balance.xml",
         "views/res_partner.xml",
         "views/account_move_tree.xml",
+        "report/report_aged_partner_balance_inherit.xml",
     ],
     'installable': True,
     'license': 'AGPL-3',
