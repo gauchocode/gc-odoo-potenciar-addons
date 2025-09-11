@@ -30,7 +30,7 @@
             inherit_id="account_financial_report.report_aged_partner_balance_move_lines">
     <xpath expr="//div[@class='act_as_thead']/div[@class='act_as_row labels']/div[contains(@class,'act_as_cell')][5]"
            position="after">
-      <div class="act_as_cell">VAT</div>
+      <div class="act_as_cell">VAT</div>  
       <div class="act_as_cell">Tipo Contacto</div>
     </xpath>
   </template>
