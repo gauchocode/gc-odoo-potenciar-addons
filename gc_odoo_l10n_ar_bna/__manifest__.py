@@ -2,8 +2,7 @@
 
 {
     'name': "Gauchocode BNA Currencies",
-    'version': '16.0.0.1',
-    'description': """Sincronización de tasas de cambio con el sitio del Banco de la Nación Argentina""",
+    'version': '16.0.1.0.1',
     'summary': "Sincronización de tasas de cambio con el sitio del Banco de la Nación Argentina",
     'author': 'GauchoCode',
     'website': 'https://www.gauchocode.com/',

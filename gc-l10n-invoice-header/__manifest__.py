@@ -1,6 +1,6 @@
 {
     "name": "Custom AR Invoice Header",
-    "version": "16.0.1.0.0",
+    "version": "16.0.2.0.0",
     "author": "GauchoCode",
     "category": "Localization",
     "depends": [

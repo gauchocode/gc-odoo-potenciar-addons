@@ -1,6 +1,6 @@
 {
     "name": "account_group_button",
-    "version": "16.0.1.0.1",
+    "version": "16.0.2.0.1",
     "summary": "Add menu access to account.group model",
     "depends": ["account_ux"],
     "data": [

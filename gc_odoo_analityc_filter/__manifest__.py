@@ -1,6 +1,6 @@
 {
     'name': 'Filtro segun cuentas analiticas en facturas',
-    'version': '16.0.1.0.1',
+    'version': '16.0.2.0.1',
     'summary': 'Permite filtrar las cuentas analiticas en las facturas',
     'author': 'GauchoCode',
     'depends': ['account'],

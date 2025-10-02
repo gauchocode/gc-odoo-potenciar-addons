@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Mail Layout Cleanup',
-    'version': '16.0.1.0.0',
+    'version': '16.0.2.0.0',
     'summary': 'Elimina el bloque extra de mail.mail_notification_layout',
     'category': 'Discuss',
     'author': 'Gauchocode',

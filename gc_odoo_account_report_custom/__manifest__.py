@@ -1,6 +1,6 @@
 {
     'name': 'Personalización de Reportes de Cuenta',
-    'version': '16.0.1.0.1',
+    'version': '16.0.2.0.1',
     'summary': 'Permite personalizar reportes de cuenta',
     'author': 'GauchoCode',
     'depends': ['account_financial_report','base','account'],
