@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Menú principal -->
+    <menuitem id="menu_potenciar_api_root" 
+              name="Potenciar API" 
+              sequence="60"/>
+
+    <!-- Submenú API Moves -->
+    <menuitem id="menu_api_moves" 
+              name="API Moves" 
+              parent="menu_potenciar_api_root" 
+              sequence="10"/>
+
+    <!-- API Account Moves -->
+    <menuitem id="menu_api_account_moves" 
+              name="API Account Moves" 
+              parent="menu_api_moves" 
+              action="action_api_account_move" 
+              sequence="10"/>
+
+    <!-- API Account Move Lines -->
+    <menuitem id="menu_api_account_move_lines" 
+              name="API Move Lines" 
+              parent="menu_api_moves" 
+              action="action_api_account_move_line" 
+              sequence="20"/>
+
+    <!-- Submenú Reports/Analysis -->
+    <menuitem id="menu_api_reports" 
+              name="Reports" 
+              parent="menu_potenciar_api_root" 
+              sequence="20"/>
+
+    <!-- Dashboard/Summary view -->
+    <record id="action_api_moves_kanban" model="ir.actions.act_window">
+        <field name="name">API Moves Dashboard</field>
+        <field name="res_model">api.account.move</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="view_api_account_move_search"/>
+        <field name="context">{'search_default_group_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No API Account Moves found!
+            </p>
+            <p>
+                This dashboard shows the status of all moves received via API.
+            </p>
+        </field>
+    </record>
+
+    <!-- Kanban view para dashboard -->
+    <record id="view_api_account_move_kanban" model="ir.ui.view">
+        <field name="name">api.account.move.kanban</field>
+        <field name="model">api.account.move</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="state"/>
+                <field name="api_uuid"/>
+                <field name="name"/>
+                <field name="partner_name"/>
+                <field name="database_name"/>
+                <field name="api_user"/>
+                <field name="date"/>
+                <field name="create_date"/>
+                <field name="error_message"/>
+                <field name="auto_process_attempted"/>
+                <field name="auto_process_success"/>
+                <field name="error_count"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                    </div>
+                                    <span class="fa fa-clock-o" aria-label="Date" role="img" title="Date"/>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div><small><field name="api_uuid"/></small></div>
+                                    <field name="partner_name" t-if="record.partner_name.value"/>
+                                    <div>
+                                        <i class="fa fa-database"/> <field name="database_name"/>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-user"/> <field name="api_user"/>
+                                    </div>
+                                    <div t-if="record.auto_process_success.value" class="text-success">
+                                        <i class="fa fa-check"/> Auto Processed
+                                    </div>
+                                    <div t-if="record.auto_process_attempted.value and !record.auto_process_success.value" class="text-warning">
+                                        <i class="fa fa-exclamation"/> Auto Process Failed
+                                    </div>
+                                    <div t-if="record.error_count.value > 0" class="text-danger">
+                                        <i class="fa fa-exclamation-triangle"/> Errors: <field name="error_count"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="date"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="create_date" widget="date"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="menu_api_dashboard" 
+              name="Dashboard" 
+              parent="menu_potenciar_api_root" 
+              action="action_api_moves_kanban" 
+              sequence="5"/>
+
+</odoo>

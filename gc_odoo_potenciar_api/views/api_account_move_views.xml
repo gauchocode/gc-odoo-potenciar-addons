@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree view para API Account Move -->
+    <record id="view_api_account_move_tree" model="ir.ui.view">
+        <field name="name">api.account.move.tree</field>
+        <field name="model">api.account.move</field>
+        <field name="arch" type="xml">
+            <tree string="API Account Moves" decoration-success="state=='done'" 
+                  decoration-danger="state=='error'" decoration-warning="state=='processing'"
+                  decoration-info="state=='retry'">
+                <field name="api_uuid"/>
+                <field name="name"/>
+                <field name="move_type"/>
+                <field name="partner_name"/>
+                <field name="journal_code"/>
+                <field name="date"/>
+                <field name="database_name"/>
+                <field name="api_user"/>
+                <field name="state" widget="badge"/>
+                <field name="auto_process_attempted" widget="boolean_toggle"/>
+                <field name="auto_process_success" widget="boolean_toggle"/>
+                <field name="error_count"/>
+                <field name="processed_date"/>
+                <field name="created_move_id"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form view para API Account Move -->
+    <record id="view_api_account_move_form" model="ir.ui.view">
+        <field name="name">api.account.move.form</field>
+        <field name="model">api.account.move</field>
+        <field name="arch" type="xml">
+            <form string="API Account Move">
+                <header>
+                    <button name="action_process_move" type="object" string="Process Move" 
+                            class="btn-primary" attrs="{'invisible': [('state', 'not in', ['received', 'retry', 'error'])]}"/>
+                    <button name="action_retry_process" type="object" string="Retry Processing" 
+                            class="btn-warning" attrs="{'invisible': [('state', '!=', 'error')]}"/>
+                    <button name="action_reset_to_received" type="object" string="Reset to Received" 
+                            attrs="{'invisible': [('state', 'in', ['received', 'processing'])]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,processing,done,error,retry"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_process_move" class="oe_stat_button" icon="fa-cogs"
+                                attrs="{'invisible': [('created_move_id', '=', False)]}">
+                            <field name="created_move_id" widget="statinfo" string="Account Move"/>
+                        </button>
+                    </div>
+                    
+                    <group>
+                        <group name="basic_info">
+                            <field name="api_uuid"/>
+                            <field name="name"/>
+                            <field name="move_type"/>
+                            <field name="date"/>
+                            <field name="journal_code"/>
+                        </group>
+                        <group name="partner_info">
+                            <field name="partner_name"/>
+                            <field name="partner_vat"/>
+                        </group>
+                    </group>
+                    
+                    <group name="api_info" string="API Information">
+                        <group>
+                            <field name="database_name"/>
+                            <field name="api_user"/>
+                            <field name="auto_process_attempted" widget="boolean_toggle"/>
+                            <field name="auto_process_success" widget="boolean_toggle"/>
+                        </group>
+                        <group>
+                            <field name="processed_date" attrs="{'invisible': [('processed_date', '=', False)]}"/>
+                            <field name="created_move_id" attrs="{'invisible': [('created_move_id', '=', False)]}"/>
+                            <field name="error_count" attrs="{'invisible': [('error_count', '=', 0)]}"/>
+                            <field name="last_error_date" attrs="{'invisible': [('last_error_date', '=', False)]}"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Move Lines" name="lines">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="account_id"/>
+                                    <field name="debit" sum="Total Debit"/>
+                                    <field name="credit" sum="Total Credit"/>
+                                    <field name="partner_name"/>
+                                    <field name="analytic_account_code"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Raw API Data" name="api_data">
+                            <field name="api_data" widget="text"/>
+                        </page>
+                        <page string="Error Details" name="error" attrs="{'invisible': [('error_message', '=', False)]}">
+                            <field name="error_message" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search view para API Account Move -->
+    <record id="view_api_account_move_search" model="ir.ui.view">
+        <field name="name">api.account.move.search</field>
+        <field name="model">api.account.move</field>
+        <field name="arch" type="xml">
+            <search string="API Account Moves">
+                <field name="api_uuid" string="API UUID"/>
+                <field name="name" string="Reference"/>
+                <field name="partner_name" string="Partner"/>
+                <field name="journal_code" string="Journal"/>
+                <field name="database_name" string="Database"/>
+                <field name="api_user" string="API User"/>
+                
+                <filter name="filter_received" string="Received" domain="[('state', '=', 'received')]"/>
+                <filter name="filter_processing" string="Processing" domain="[('state', '=', 'processing')]"/>
+                <filter name="filter_done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="filter_error" string="Error" domain="[('state', '=', 'error')]"/>
+                <filter name="filter_retry" string="Ready for Retry" domain="[('state', '=', 'retry')]"/>
+                
+                <separator/>
+                <filter name="filter_auto_processed" string="Auto Processed" domain="[('auto_process_success', '=', True)]"/>
+                <filter name="filter_auto_failed" string="Auto Process Failed" domain="[('auto_process_attempted', '=', True), ('auto_process_success', '=', False)]"/>
+                <filter name="filter_with_errors" string="With Errors" domain="[('error_count', '>', 0)]"/>
+                
+                <separator/>
+                <filter name="filter_today" string="Today" domain="[('create_date', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                <filter name="filter_this_week" string="This Week" domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_move_type" string="Move Type" context="{'group_by': 'move_type'}"/>
+                    <filter name="group_database" string="Database" context="{'group_by': 'database_name'}"/>
+                    <filter name="group_api_user" string="API User" context="{'group_by': 'api_user'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Tree view para API Account Move Lines -->
+    <record id="view_api_account_move_line_tree" model="ir.ui.view">
+        <field name="name">api.account.move.line.tree</field>
+        <field name="model">api.account.move.line</field>
+        <field name="arch" type="xml">
+            <tree string="API Account Move Lines">
+                <field name="move_id"/>
+                <field name="name"/>
+                <field name="account_id"/>
+                <field name="debit"/>
+                <field name="credit"/>
+                <field name="partner_name"/>
+                <field name="analytic_account_code"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form view para API Account Move Lines -->
+    <record id="view_api_account_move_line_form" model="ir.ui.view">
+        <field name="name">api.account.move.line.form</field>
+        <field name="model">api.account.move.line</field>
+        <field name="arch" type="xml">
+            <form string="API Account Move Line">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="move_id"/>
+                            <field name="name"/>
+                            <field name="account_id"/>
+                        </group>
+                        <group>
+                            <field name="debit"/>
+                            <field name="credit"/>
+                            <field name="currency_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="partner_name"/>
+                        </group>
+                        <group>
+                            <field name="analytic_account_code"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_api_account_move" model="ir.actions.act_window">
+        <field name="name">API Account Moves</field>
+        <field name="res_model">api.account.move</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_api_account_move_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No API Account Moves found!
+            </p>
+            <p>
+                This view shows all account moves received via API.
+                You can process them manually to create actual account.move records.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_api_account_move_line" model="ir.actions.act_window">
+        <field name="name">API Account Move Lines</field>
+        <field name="res_model">api.account.move.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No API Account Move Lines found!
+            </p>
+            <p>
+                This view shows all move lines received via API.
+            </p>
+        </field>
+    </record>
+
+</odoo>
