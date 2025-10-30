@@ -15,6 +15,8 @@ class ApiAccountMove(models.Model):
     api_uuid = fields.Char(string='API UUID', required=True, index=True, 
                           help='Unique identifier for this API call')
     name = fields.Char(string='Reference', required=True)
+    external_reference = fields.Char(string='External Reference', index=True,
+                                   help='External system reference or identifier')
     move_type = fields.Selection([
         ('entry', 'Journal Entry'),
         ('out_invoice', 'Customer Invoice'),
@@ -58,6 +60,13 @@ class ApiAccountMove(models.Model):
     # Campos adicionales para la API
     database_name = fields.Char(string='Database Name', help='Database from which this data was sent')
     api_user = fields.Char(string='API User', help='User who sent this data via API')
+    
+    # Restricciones SQL
+    _sql_constraints = [
+        ('external_reference_unique', 
+         'UNIQUE(external_reference, database_name)', 
+         'External reference must be unique per database!')
+    ]
     
     def action_process_move(self, auto_process=False):
         """Crear el account.move basado en los datos del API"""

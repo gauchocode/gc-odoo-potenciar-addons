@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Configuración para API OAuth - usando el módulo nativo auth_oauth de Odoo -->
+        <!-- No se requiere configuración adicional aquí ya que auth_oauth maneja todo -->
+    </data>
+</odoo>

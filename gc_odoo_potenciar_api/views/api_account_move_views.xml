@@ -10,6 +10,7 @@
                   decoration-info="state=='retry'">
                 <field name="api_uuid"/>
                 <field name="name"/>
+                <field name="external_reference"/>
                 <field name="move_type"/>
                 <field name="partner_name"/>
                 <field name="journal_code"/>
@@ -54,6 +55,7 @@
                         <group name="basic_info">
                             <field name="api_uuid"/>
                             <field name="name"/>
+                            <field name="external_reference"/>
                             <field name="move_type"/>
                             <field name="date"/>
                             <field name="journal_code"/>
@@ -112,6 +114,7 @@
             <search string="API Account Moves">
                 <field name="api_uuid" string="API UUID"/>
                 <field name="name" string="Reference"/>
+                <field name="external_reference" string="External Reference"/>
                 <field name="partner_name" string="Partner"/>
                 <field name="journal_code" string="Journal"/>
                 <field name="database_name" string="Database"/>

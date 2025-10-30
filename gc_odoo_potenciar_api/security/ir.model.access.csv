@@ -3,3 +3,7 @@ access_api_account_move_user,api.account.move.user,model_api_account_move,base.g
 access_api_account_move_manager,api.account.move.manager,model_api_account_move,account.group_account_manager,1,1,1,1
 access_api_account_move_line_user,api.account.move.line.user,model_api_account_move_line,base.group_user,1,1,1,0
 access_api_account_move_line_manager,api.account.move.line.manager,model_api_account_move_line,account.group_account_manager,1,1,1,1
+access_api_operation_type_user,api.operation.type.user,model_api_operation_type,base.group_user,1,0,0,0
+access_api_operation_type_manager,api.operation.type.manager,model_api_operation_type,account.group_account_manager,1,1,1,1
+access_api_operation_line_user,api.operation.line.user,model_api_operation_line,base.group_user,1,0,0,0
+access_api_operation_line_manager,api.operation.line.manager,model_api_operation_line,account.group_account_manager,1,1,1,1

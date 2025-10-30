@@ -12,12 +12,32 @@
               parent="menu_potenciar_api_root" 
               sequence="10"/>
 
+    <!-- Submenú Configuración -->
+    <menuitem id="menu_api_config" 
+              name="Configuración" 
+              parent="menu_potenciar_api_root" 
+              sequence="20"/>
+
     <!-- API Account Moves -->
     <menuitem id="menu_api_account_moves" 
               name="API Account Moves" 
               parent="menu_api_moves" 
               action="action_api_account_move" 
               sequence="10"/>
+
+    <!-- Tipos de Operación -->
+    <menuitem id="menu_api_operation_types" 
+              name="Tipos de Operación" 
+              parent="menu_api_config" 
+              action="action_api_operation_type" 
+              sequence="10"/>
+
+    <!-- Líneas de Operación -->
+    <menuitem id="menu_api_operation_lines" 
+              name="Líneas de Operación" 
+              parent="menu_api_config" 
+              action="action_api_operation_line" 
+              sequence="20"/>
 
     <!-- API Account Move Lines -->
     <menuitem id="menu_api_account_move_lines" 
