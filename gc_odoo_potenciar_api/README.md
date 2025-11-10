@@ -1,43 +1,75 @@
-# GC Odoo Potenciar API
+# 🚀 GC Odoo Potenciar API
 
-API REST para crear asientos contables en Odoo usando tipos de operación predefinidos con autenticación OAuth.
+API REST para crear asientos contables en Odoo usando tipos de operación predefinidos con autenticación OAuth y documentación Swagger interactiva.
 
-## 🚀 **Características**
+## 🌟 **Características**
 
-- **Autenticación OAuth**: Integración nativa con auth_oauth de Odoo
-- **Tipos de Operación**: Plantillas predefinidas para asientos contables comunes
-- **Múltiples Asientos**: Endpoint batch para procesar varios asientos en una llamada
-- **Partners por VAT**: Búsqueda y creación automática de partners usando CUIT/VAT
-- **Validación Robusta**: Manejo de errores y validaciones completas
+- **📖 Documentación Interactiva**: Swagger UI completo con ejemplos
+- **🔐 Autenticación OAuth**: Integración nativa con auth_oauth de Odoo
+- **⚙️ Tipos de Operación**: Plantillas predefinidas para asientos contables comunes
+- **📊 Múltiples Asientos**: Endpoint batch para procesar varios asientos en una llamada
+- **👤 Partners por VAT**: Búsqueda y creación automática de partners usando CUIT/VAT
+- **✅ Validación Robusta**: Manejo de errores y validaciones completas
+- **📑 OpenAPI 3.0**: Especificación completa en formato JSON
 
 ---
 
 ## 📦 **Instalación**
 
-1. Instalar módulo `auth_oauth` en Odoo
-2. Copiar este módulo a addons/
-3. Actualizar lista de aplicaciones
-4. Instalar `gc_odoo_potenciar_api`
-5. Configurar OAuth Provider en Odoo
+1. Instalar dependencia Python:
+   ```bash
+   pip install PyJWT>=2.8.0
+   ```
+
+2. Instalar módulo `auth_oauth` en Odoo
+
+3. Copiar este módulo a addons/
+
+4. Actualizar lista de aplicaciones
+
+5. Instalar `gc_odoo_potenciar_api`
+
+6. Configurar OAuth Provider en Odoo
+
+---
+
+## 📖 **Documentación Interactiva**
+
+### **🎯 Acceder a Swagger UI**
+Visita la documentación interactiva en tu navegador:
+
+```
+http://tu-servidor-odoo:puerto/api/v1/docs
+```
+
+**Ejemplo:**
+```
+http://localhost:8069/api/v1/docs
+```
+
+### **📋 Especificación OpenAPI**
+Obtén la especificación en formato JSON:
+
+```
+http://tu-servidor-odoo:puerto/api/v1/openapi.json
+```
 
 ---
 
 ## 🎯 **Endpoints Disponibles**
 
-### **1. Asiento Individual**
-```
-POST /api/v1/account-moves
-```
+### **📖 Documentación**
+- **GET** `/api/v1/docs` - Documentación Swagger UI interactiva
+- **GET** `/api/v1/openapi.json` - Especificación OpenAPI 3.0
 
-### **2. Múltiples Asientos (Batch)**
-```
-POST /api/v1/account-moves/batch
-```
+### **💼 Asientos Contables**
+- **POST** `/api/v1/account-moves` - Crear un asiento contable
+- **POST** `/api/v1/account-moves/batch` - Crear múltiples asientos (hasta 100)
+- **POST** `/api/v1/account_moves` - Endpoint legacy para compatibilidad
 
-### **3. Health Check**
-```
-GET /api/v1/health
-```
+### **🔧 Sistema**
+- **GET** `/api/v1/health` - Health check del servicio
+- **GET/POST** `/api/v1/test` - Endpoint de prueba
 
 ---
 

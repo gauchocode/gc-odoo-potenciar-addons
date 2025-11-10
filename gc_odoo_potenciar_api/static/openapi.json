@@ -1,0 +1,449 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "GC Odoo Potenciar API",
+    "description": "\nAPI para la creación de asientos contables en Odoo utilizando tipos de operación predefinidos.\n\n### Autenticación\nEsta API soporta autenticación OAuth mediante tokens de acceso. Debe incluir el `oauth_access_token` en el cuerpo de todas las peticiones POST.\n\n### Tipos de operación\nLos asientos contables se crean basándose en tipos de operación predefinidos que definen:\n- Qué cuentas contables utilizar\n- Si requieren partner o no\n- Cómo calcular los importes de cada línea\n- El tipo de asiento (entry, in_invoice, out_invoice, etc.)\n\n### Estados de procesamiento\n- **received**: El movimiento fue recibido y almacenado\n- **done**: El movimiento fue procesado y el asiento contable fue creado\n- **error**: Ocurrió un error durante el procesamiento\n                ",
+    "version": "1.2.0",
+    "contact": {
+      "name": "Gauchocode",
+      "url": "https://gauchocode.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Servidor actual"
+    }
+  ],
+  "paths": {
+    "/api/v1/account-moves": {
+      "post": {
+        "tags": ["Account Moves"],
+        "summary": "Crear un asiento contable",
+        "description": "Crea un asiento contable basado en un tipo de operación predefinido",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountMoveRequest"
+              },
+              "example": {
+                "database": "my_database",
+                "oauth_access_token": "your_oauth_token_here",
+                "operation_type_code": "SALE_INCOME",
+                "amount": 1000.0,
+                "date": "2024-11-10",
+                "partner_vat": "20123456789",
+                "partner_name": "Cliente Test",
+                "external_reference": "REF-001",
+                "description": "Venta de servicios"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asiento contable creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAccountMoveResponse"
+                },
+                "example": {
+                  "success": true,
+                  "move_id": 123,
+                  "move_name": "MISC/2024/001",
+                  "api_move_id": 456,
+                  "api_uuid": "550e8400-e29b-41d4-a716-446655440000",
+                  "operation_type": "SALE_INCOME",
+                  "message": "Account move created successfully",
+                  "authenticated_user": "admin"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los parámetros de entrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Missing required parameters: database, oauth_access_token, operation_type_code, amount, date"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error de autenticación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "OAuth authentication failed: Invalid OAuth token or user not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account-moves/batch": {
+      "post": {
+        "tags": ["Account Moves"],
+        "summary": "Crear múltiples asientos contables",
+        "description": "Crea múltiples asientos contables en una sola llamada (máximo 100)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchCreateAccountMovesRequest"
+              },
+              "example": {
+                "database": "my_database",
+                "oauth_access_token": "your_oauth_token_here",
+                "moves": [
+                  {
+                    "operation_type_code": "SALE_INCOME",
+                    "amount": 1000.0,
+                    "date": "2024-11-10",
+                    "partner_vat": "20123456789",
+                    "partner_name": "Cliente 1",
+                    "external_reference": "REF-001",
+                    "description": "Venta 1"
+                  },
+                  {
+                    "operation_type_code": "PURCHASE_EXPENSE",
+                    "amount": 500.0,
+                    "date": "2024-11-10",
+                    "partner_vat": "20987654321",
+                    "partner_name": "Proveedor 1",
+                    "external_reference": "REF-002",
+                    "description": "Compra 1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Procesamiento completado (puede incluir errores parciales)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchCreateAccountMovesResponse"
+                },
+                "example": {
+                  "success": true,
+                  "summary": {
+                    "total_requested": 2,
+                    "successful": 2,
+                    "failed": 0
+                  },
+                  "created_moves": [
+                    {
+                      "index": 0,
+                      "move_id": 123,
+                      "move_name": "MISC/2024/001",
+                      "api_move_id": 456,
+                      "api_uuid": "550e8400-e29b-41d4-a716-446655440000",
+                      "operation_type": "SALE_INCOME",
+                      "amount": 1000.0,
+                      "date": "2024-11-10",
+                      "external_reference": "REF-001",
+                      "partner_vat": "20123456789",
+                      "description": "Venta 1",
+                      "status": "processed"
+                    }
+                  ],
+                  "authenticated_user": "admin"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check",
+        "description": "Verifica el estado del servicio API",
+        "responses": {
+          "200": {
+            "description": "Servicio funcionando correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "service": "Potenciar API",
+                  "databases": ["db1", "db2"],
+                  "timestamp": "2024-11-10 15:30:00"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Test endpoint",
+        "description": "Endpoint de prueba para verificar conectividad",
+        "responses": {
+          "200": {
+            "description": "Test exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "message": "Test endpoint working with GET method",
+                  "module": "gc_odoo_potenciar_api"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["System"],
+        "summary": "Test endpoint (POST)",
+        "description": "Endpoint de prueba para verificar conectividad con método POST",
+        "responses": {
+          "200": {
+            "description": "Test exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "message": "Test endpoint working with POST method",
+                  "module": "gc_odoo_potenciar_api"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateAccountMoveRequest": {
+        "type": "object",
+        "required": ["database", "oauth_access_token", "operation_type_code", "amount", "date"],
+        "properties": {
+          "database": {
+            "type": "string",
+            "description": "Nombre de la base de datos de Odoo"
+          },
+          "oauth_access_token": {
+            "type": "string",
+            "description": "Token de acceso OAuth"
+          },
+          "operation_type_code": {
+            "type": "string",
+            "description": "Código del tipo de operación predefinido"
+          },
+          "amount": {
+            "type": "number",
+            "format": "float",
+            "description": "Importe total de la operación"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha del asiento (formato YYYY-MM-DD)"
+          },
+          "partner_vat": {
+            "type": "string",
+            "description": "CUIT/VAT del partner (opcional, depende del tipo de operación)"
+          },
+          "partner_name": {
+            "type": "string",
+            "description": "Nombre del partner (opcional)"
+          },
+          "external_reference": {
+            "type": "string",
+            "description": "Referencia externa única (opcional)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción de la operación (opcional)"
+          }
+        }
+      },
+      "CreateAccountMoveResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa"
+          },
+          "move_id": {
+            "type": "integer",
+            "description": "ID del asiento contable creado"
+          },
+          "move_name": {
+            "type": "string",
+            "description": "Nombre/número del asiento contable"
+          },
+          "api_move_id": {
+            "type": "integer",
+            "description": "ID del registro API intermedio"
+          },
+          "api_uuid": {
+            "type": "string",
+            "description": "UUID único del movimiento API"
+          },
+          "operation_type": {
+            "type": "string",
+            "description": "Código del tipo de operación utilizado"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje descriptivo del resultado"
+          },
+          "authenticated_user": {
+            "type": "string",
+            "description": "Usuario que realizó la operación"
+          },
+          "status": {
+            "type": "string",
+            "description": "Estado del procesamiento (processed/pending)"
+          }
+        }
+      },
+      "BatchCreateAccountMovesRequest": {
+        "type": "object",
+        "required": ["database", "oauth_access_token", "moves"],
+        "properties": {
+          "database": {
+            "type": "string",
+            "description": "Nombre de la base de datos de Odoo"
+          },
+          "oauth_access_token": {
+            "type": "string",
+            "description": "Token de acceso OAuth"
+          },
+          "moves": {
+            "type": "array",
+            "description": "Array de movimientos a crear (máximo 100)",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "required": ["operation_type_code", "amount", "date"],
+              "properties": {
+                "operation_type_code": {"type": "string"},
+                "amount": {"type": "number", "format": "float"},
+                "date": {"type": "string", "format": "date"},
+                "partner_vat": {"type": "string"},
+                "partner_name": {"type": "string"},
+                "external_reference": {"type": "string"},
+                "description": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "BatchCreateAccountMovesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "True si todos los movimientos fueron exitosos, False si hubo algún error"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "total_requested": {"type": "integer"},
+              "successful": {"type": "integer"},
+              "failed": {"type": "integer"}
+            }
+          },
+          "created_moves": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {"type": "integer"},
+                "move_id": {"type": "integer"},
+                "move_name": {"type": "string"},
+                "api_move_id": {"type": "integer"},
+                "api_uuid": {"type": "string"},
+                "operation_type": {"type": "string"},
+                "amount": {"type": "number"},
+                "date": {"type": "string"},
+                "external_reference": {"type": "string"},
+                "partner_vat": {"type": "string"},
+                "description": {"type": "string"},
+                "status": {"type": "string"}
+              }
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {"type": "integer"},
+                "error": {"type": "string"}
+              }
+            }
+          },
+          "authenticated_user": {"type": "string"}
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Siempre false para errores"
+          },
+          "error": {
+            "type": "string",
+            "description": "Descripción del error"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string"},
+          "service": {"type": "string"},
+          "databases": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "timestamp": {"type": "string"}
+        }
+      },
+      "TestResponse": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string"},
+          "message": {"type": "string"},
+          "module": {"type": "string"}
+        }
+      }
+    }
+  }
+}

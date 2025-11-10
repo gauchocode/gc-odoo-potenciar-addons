@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Any
 from odoo import http, registry, SUPERUSER_ID, fields, api
 from odoo.http import request, Response
@@ -12,10 +12,6 @@ _logger = logging.getLogger(__name__)
 
 
 class PotenciarAPIController(http.Controller):
-
-    # Configuración JWT
-    JWT_ALGORITHM = 'HS256'
-    JWT_EXPIRATION_HOURS = 24
 
     def _json_body(self):
         """Obtiene el body JSON de forma resiliente.
@@ -31,61 +27,6 @@ class PotenciarAPIController(http.Controller):
             return json.loads(raw)
         except Exception:
             return {}
-
-    def _get_jwt_secret(self, env):
-        """Obtener clave secreta para JWT desde parámetros del sistema"""
-        try:
-            return env['ir.config_parameter'].sudo().get_param('api_jwt_secret', 'default_secret_change_me')
-        except Exception as e:
-            _logger.error(f'Error getting JWT secret: {str(e)}')
-            return 'default_secret_change_me'
-
-    def _generate_jwt_token(self, user, database):
-        """Generar JWT token para el usuario autenticado"""
-        try:
-            # Obtener clave JWT
-            with registry(database).cursor() as cr:
-                env = odoo.api.Environment(cr, SUPERUSER_ID, {})
-                jwt_secret = self._get_jwt_secret(env)
-            
-            payload = {
-                'user_id': user.id,
-                'login': user.login,
-                'name': user.name,
-                'database': database,
-                'exp': datetime.utcnow() + timedelta(hours=self.JWT_EXPIRATION_HOURS),
-                'iat': datetime.utcnow()
-            }
-            
-            token = jwt.encode(payload, jwt_secret, algorithm=self.JWT_ALGORITHM)
-            return token
-            
-        except Exception as e:
-            _logger.error(f'Error generating JWT token: {str(e)}')
-            return None
-
-    def _verify_jwt_token(self, token, database):
-        """Verificar y decodificar JWT token"""
-        try:
-            # Obtener clave JWT
-            with registry(database).cursor() as cr:
-                env = odoo.api.Environment(cr, SUPERUSER_ID, {})
-                jwt_secret = self._get_jwt_secret(env)
-            
-            payload = jwt.decode(token, jwt_secret, algorithms=[self.JWT_ALGORITHM])
-            
-            # Verificar que el token es para la base de datos correcta
-            if payload.get('database') != database:
-                _logger.error('JWT token database mismatch')
-                return None
-                
-            return payload
-        except jwt.ExpiredSignatureError:
-            _logger.error('JWT token has expired')
-            return None
-        except jwt.InvalidTokenError as e:
-            _logger.error(f'Invalid JWT token: {str(e)}')
-            return None
 
     def _authenticate_with_oauth_token(self, database, oauth_access_token):
         """Autenticar usando token OAuth de Odoo"""
@@ -110,49 +51,12 @@ class PotenciarAPIController(http.Controller):
                     _logger.warning(f'No active user found with OAuth token in database {database}')
                     return False, None, "Invalid OAuth token or user not found"
 
-                # Generar JWT token
-                jwt_token = self._generate_jwt_token(user, database)
-                if not jwt_token:
-                    return False, None, "Error generating JWT token"
-
                 _logger.info(f'OAuth authentication successful for user {user.login} in database {database}')
-                return True, jwt_token, user.login
+                return True, oauth_access_token, user.login
 
         except Exception as e:
             _logger.error(f'OAuth authentication error: {str(e)}')
             return False, None, f"Authentication error: {str(e)}"
-
-    def _authenticate_with_jwt(self, database, jwt_token):
-        """Autenticar usuario usando JWT token"""
-        try:
-            # Verificar que la base de datos existe
-            db_list = http.db_list()
-            if database not in db_list:
-                _logger.error(f'Database {database} not found in available databases: {db_list}')
-                return False, "Database not found"
-
-            # Verificar JWT token
-            payload = self._verify_jwt_token(jwt_token, database)
-            if not payload:
-                return False, "Invalid or expired JWT token"
-
-            # Verificar que el usuario sigue existiendo y activo
-            with registry(database).cursor() as cr:
-                env = odoo.api.Environment(cr, SUPERUSER_ID, {})
-                
-                user_id = payload.get('user_id')
-                user = env['res.users'].browse(user_id)
-                
-                if not user.exists() or not user.active:
-                    _logger.warning(f'User {user_id} not found or inactive in database {database}')
-                    return False, "User not found or inactive"
-
-                _logger.info(f'JWT authentication successful for user {user.login} in database {database}')
-                return True, user.login
-
-        except Exception as e:
-            _logger.error(f'JWT authentication error: {str(e)}')
-            return False, f"Authentication error: {str(e)}"
 
     @http.route('/api/v1/account-moves', type='json', auth='none', methods=['POST'], csrf=False)
     def create_account_move(self, **kwargs):
@@ -687,167 +591,6 @@ class PotenciarAPIController(http.Controller):
                 'error': str(e)
             }
 
-    @http.route('/api/v1/account_moves', type='http', auth='none', methods=['POST'], csrf=False)
-    def create_account_moves(self, **kwargs):
-        """
-        API endpoint para recibir account.moves
-        
-        Formato esperado con autenticación tradicional:
-        {
-            "database": "nombre_db",
-            "username": "usuario",
-            "password": "contraseña",
-            "moves": [...]
-        }
-        
-        Formato esperado con OAuth (JWT):
-        {
-            "database": "nombre_db",
-            "jwt_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-            "moves": [...]
-        }
-        """
-        _logger.info('API endpoint /api/v1/account_moves called')
-        try:
-            # Obtener datos del request - para type='http' usamos httprequest
-            if not request.httprequest.data:
-                _logger.warning('No data received in request')
-                return self._json_response({'status': 'error', 'message': 'No data received'}, 400)
-            
-            try:
-                data = json.loads(request.httprequest.data.decode('utf-8'))
-            except (json.JSONDecodeError, UnicodeDecodeError) as e:
-                return self._json_response({'status': 'error', 'message': f'Invalid JSON: {str(e)}'}, 400)
-            
-            # Validar campos requeridos
-            required_fields = ['database', 'moves']
-            for field in required_fields:
-                if field not in data:
-                    return self._json_response({'status': 'error', 'message': f'Missing required field: {field}'}, 400)
-            
-            database = data['database']
-            moves_data = data['moves']
-            
-            # Determinar tipo de autenticación y validar
-            auth_success = False
-            auth_user = None
-            
-            if 'jwt_token' in data:
-                # Autenticación OAuth con JWT
-                jwt_token = data['jwt_token']
-                auth_success, error_msg = self._authenticate_with_jwt(database, jwt_token)
-                if auth_success:
-                    # Extraer información del usuario del JWT
-                    payload = self._verify_jwt_token(jwt_token)
-                    auth_user = payload.get('email') if payload else 'unknown'
-                else:
-                    return self._json_response({'status': 'error', 'message': f'JWT authentication failed: {error_msg}'}, 401)
-                    
-            elif 'username' in data and 'password' in data:
-                # Autenticación tradicional
-                username = data['username']
-                password = data['password']
-                auth_success = self._authenticate_user(database, username, password)
-                auth_user = username
-                if not auth_success:
-                    return self._json_response({'status': 'error', 'message': 'Traditional authentication failed'}, 401)
-            else:
-                return self._json_response({
-                    'status': 'error', 
-                    'message': 'Missing authentication. Provide either (username + password) or jwt_token'
-                }, 400)
-            
-            # Generar UUID único para esta llamada API
-            api_call_uuid = str(uuid.uuid4())
-            _logger.info(f'Processing API call {api_call_uuid} with {len(moves_data)} moves for user {auth_user}')
-            
-            # Procesar los movimientos
-            created_moves = []
-            processed_moves = []
-            errors = []
-            
-            # Cambiar a la base de datos especificada
-            with registry(database).cursor() as cr:
-                env = odoo.api.Environment(cr, SUPERUSER_ID, {})
-                
-                for i, move_data in enumerate(moves_data):
-                    move_uuid = f"{api_call_uuid}-{i+1}"
-                    try:
-                        # Crear el movimiento intermedio
-                        api_move = self._create_api_move(env, move_data, database, auth_user, move_uuid)
-                        
-                        move_info = {
-                            'id': api_move.id,
-                            'uuid': api_move.api_uuid,
-                            'name': api_move.name,
-                            'state': api_move.state,
-                            'auto_processed': False,
-                            'account_move_id': None,
-                            'error': None
-                        }
-                        
-                        # Intentar procesamiento automático
-                        try:
-                            success = api_move.auto_process_move()
-                            if success:
-                                move_info.update({
-                                    'state': 'done',
-                                    'auto_processed': True,
-                                    'account_move_id': api_move.created_move_id.id if api_move.created_move_id else None
-                                })
-                                processed_moves.append(move_info)
-                                _logger.info(f'Move {move_uuid} auto-processed successfully')
-                            else:
-                                move_info.update({
-                                    'state': 'error',
-                                    'error': api_move.error_message
-                                })
-                                _logger.warning(f'Move {move_uuid} auto-processing failed: {api_move.error_message}')
-                        except Exception as process_e:
-                            move_info.update({
-                                'state': 'error',
-                                'error': str(process_e)
-                            })
-                            _logger.error(f'Move {move_uuid} auto-processing exception: {str(process_e)}')
-                        
-                        created_moves.append(move_info)
-                        
-                    except Exception as e:
-                        error_msg = str(e)
-                        _logger.error(f'Error creating API move {move_uuid}: {error_msg}')
-                        errors.append({
-                            'uuid': move_uuid,
-                            'move_data': move_data,
-                            'error': error_msg
-                        })
-                
-                cr.commit()
-            
-            # Preparar respuesta
-            response_data = {
-                'api_call_uuid': api_call_uuid,
-                'status': 'success' if not errors else 'partial_success',
-                'created_moves': created_moves,
-                'auto_processed_moves': processed_moves,
-                'errors': errors,
-                'total_processed': len(moves_data),
-                'successful_created': len(created_moves),
-                'auto_processed_count': len(processed_moves),
-                'failed': len(errors),
-                'summary': {
-                    'received': len([m for m in created_moves if m['state'] == 'received']),
-                    'processed': len([m for m in created_moves if m['state'] == 'done']),
-                    'errors': len([m for m in created_moves if m['state'] == 'error']),
-                    'total_errors': len(errors) + len([m for m in created_moves if m['state'] == 'error'])
-                }
-            }
-            
-            return self._json_response(response_data)
-            
-        except Exception as e:
-            _logger.error(f'Unexpected error in API endpoint: {str(e)}')
-            return self._json_response({'status': 'error', 'message': f'Internal server error: {str(e)}'}, 500)
-    
     def _authenticate_with_oauth(self, database, oauth_access_token):
         """Autenticar usando token OAuth de Odoo y devolver el usuario"""
         try:
