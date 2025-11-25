@@ -1,6 +1,6 @@
 {
     'name': 'GC Odoo Potenciar API',
-    'version': '16.0.1.2.3',  # Eliminación de endpoint legacy
+    'version': '16.0.2.2.3',  # Eliminación de endpoint legacy
     'category': 'Accounting/Accounting',
     'summary': 'API endpoint for receiving account moves and creating them in Odoo with OAuth support and Swagger documentation',
     'description': """
@@ -31,7 +31,7 @@ Endpoints disponibles:
 
 Accede a /api/v1/docs para ver la documentación completa e interactiva.
     """,
-    'author': 'Gauchocode',
+    'author': 'GauchoCode',
     'website': 'https://gauchocode.com',
     'depends': [
         'base',

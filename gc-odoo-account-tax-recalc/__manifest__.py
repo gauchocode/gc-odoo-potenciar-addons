@@ -1,6 +1,6 @@
 {
     'name': 'Account Move – Control Recalculo Automático de Impuestos',
-    'version': '16.0.2.0',
+    'version': '16.0.3.0',
     'summary': 'Permite al usuario deshabilitar el recálculo automático de tax_totals',
     'author': 'GauchoCode',
     'depends': ['account'],
