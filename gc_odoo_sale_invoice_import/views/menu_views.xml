@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_gc_sale_invoice_import_wizard"
+              name="Importar facturas (Excel)"
+              parent="account.menu_finance_receivables"
+              action="action_gc_sale_invoice_import_wizard"
+              sequence="95"/>
+</odoo>
+
