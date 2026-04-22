@@ -561,6 +561,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         }
 
     def _create_invoice(self, row, headers, product_code_by_column):
+        move_model = self.env["account.move"]
         partner = self._get_or_create_partner(row)
         journal = self._get_sale_journal(row.get("journal_name"))
         currency = self._get_currency(row.get("currency_label"))
@@ -627,17 +628,15 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
 
         # B/C del Excel: período de facturación AFIP (desde/hasta).
         # Se asigna solo si los campos existen en account.move (compatibilidad).
-        if row.get("period_from") and "l10n_ar_afip_service_start" in Invoice._fields:
+        if row.get("period_from") and "l10n_ar_afip_service_start" in move_model._fields:
             vals["l10n_ar_afip_service_start"] = row["period_from"]
-        if row.get("period_to") and "l10n_ar_afip_service_end" in Invoice._fields:
+        if row.get("period_to") and "l10n_ar_afip_service_end" in move_model._fields:
             vals["l10n_ar_afip_service_end"] = row["period_to"]
 
-        if row.get("exchange_rate") and "l10n_ar_currency_rate" in self.env[
-            "account.move"
-        ]._fields:
+        if row.get("exchange_rate") and "l10n_ar_currency_rate" in move_model._fields:
             vals["l10n_ar_currency_rate"] = row["exchange_rate"]
 
-        return self.env["account.move"].create(vals)
+        return move_model.create(vals)
 
     def _build_line_vals(self, amount, column, header, product_code, tax_21):
         product = self._find_product(product_code)
