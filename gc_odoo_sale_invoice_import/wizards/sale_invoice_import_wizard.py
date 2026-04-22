@@ -625,6 +625,13 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             "narration": row.get("comment") or False,
         }
 
+        # B/C del Excel: período de facturación AFIP (desde/hasta).
+        # Se asigna solo si los campos existen en account.move (compatibilidad).
+        if row.get("period_from") and "l10n_ar_afip_service_start" in Invoice._fields:
+            vals["l10n_ar_afip_service_start"] = row["period_from"]
+        if row.get("period_to") and "l10n_ar_afip_service_end" in Invoice._fields:
+            vals["l10n_ar_afip_service_end"] = row["period_to"]
+
         if row.get("exchange_rate") and "l10n_ar_currency_rate" in self.env[
             "account.move"
         ]._fields:
