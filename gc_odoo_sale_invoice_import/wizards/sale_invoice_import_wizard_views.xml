@@ -52,10 +52,11 @@
                         </field>
                     </group>
 
-                    <group string="Resultado de la importación" invisible="not context.get('show_log', False)">
+                    <div invisible="not context.get('show_log', False)">
+                        <separator string="Resultado de la importación"/>
                         <field name="import_log" widget="text" nolabel="1" readonly="1"
-                               style="font-family: monospace; white-space: pre-wrap; font-size: 12px;"/>
-                    </group>
+                               style="width: 100%; min-height: 520px; font-family: monospace; white-space: pre-wrap; font-size: 12px;"/>
+                    </div>
                 </sheet>
 
                 <footer>

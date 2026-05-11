@@ -9,3 +9,10 @@
 
 Este criterio se dejó intencionalmente así para esta etapa.
 
+## Nota funcional: Analíticos
+
+- Las columnas K, L, M y N del Excel determinan los analíticos de las líneas de factura.
+- Si una de esas celdas está vacía, no se asigna nada para esa columna.
+- Si tiene valor, el importador busca ese valor contra `account.analytic.account` por nombre, código o display name.
+- Cuando el encabezado de la columna coincide con un plan analítico, la búsqueda se restringe a ese plan. Por ejemplo, `Analitico DOC` busca el valor de K dentro del plan `DOC`.
+- Cuando encuentra los analíticos, los asigna al 100% en cada línea importada mediante `analytic_distribution`.

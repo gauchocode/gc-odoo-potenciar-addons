@@ -22,6 +22,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
     _description = "Importador de facturas de venta desde Excel"
     _preview_max_scan_rows = 20000
     _preview_stop_after_empty_rows = 250
+    _analytic_columns = (11, 12, 13, 14)
 
     file = fields.Binary(string="Archivo Excel", required=True)
     filename = fields.Char(string="Nombre de archivo")
@@ -404,6 +405,13 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             if not parsed:
                 return {"state": "skip", "row": None, "message": False}
 
+            for analytic_item in parsed.get("analytic_labels", []):
+                self._find_analytic_account(
+                    analytic_item["label"],
+                    plan_label=self._cell(sheet, 1, analytic_item["column"]),
+                    column=analytic_item["column"],
+                )
+
             duplicated = self._find_duplicated_invoice_by_type(parsed)
             if duplicated:
                 return {
@@ -552,6 +560,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             "currency_label": str(values[7]).strip() if values[7] else False,
             "journal_name": str(values[8]).strip() if values[8] else False,
             "payment_term_name": str(values[9]).strip() if values[9] else False,
+            "analytic_label": str(values[10]).strip() if values[10] else False,
+            "analytic_labels": self._get_analytic_labels_from_values(values),
             "base_total": self._to_float(values[14], allow_empty=True) or 0.0,
             "pct": self._to_float(values[15], allow_empty=True),
             "line_amount_17": self._to_float(values[16], allow_empty=True) or 0.0,
@@ -566,8 +576,13 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         journal = self._get_sale_journal(row.get("journal_name"))
         currency = self._get_currency(row.get("currency_label"))
         tax_21 = self._get_sale_tax_21()
+        analytic_accounts = self._find_analytic_accounts(row, headers)
 
         lines = []
+        if row.get("comment"):
+            lines.append((0, 0, self._build_comment_line_vals(row["comment"])))
+
+        amount_lines = 0
         for column in (17, 18):
             amount = row.get(f"line_amount_{column}") or 0.0
             if amount <= 0:
@@ -578,10 +593,12 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                 header=headers.get(column),
                 product_code=product_code_by_column.get(column),
                 tax_21=tax_21,
+                analytic_accounts=analytic_accounts,
             )
             lines.append((0, 0, line_vals))
+            amount_lines += 1
 
-        if not lines:
+        if not amount_lines:
             fallback_base = row["base_total"] or (row["total"] - row["vat_21"])
             if fallback_base <= 0:
                 raise ValidationError(
@@ -597,6 +614,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                         header=_("Comisión Total"),
                         product_code=False,
                         tax_21=tax_21,
+                        analytic_accounts=analytic_accounts,
                     ),
                 )
             )
@@ -638,7 +656,15 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
 
         return move_model.create(vals)
 
-    def _build_line_vals(self, amount, column, header, product_code, tax_21):
+    def _build_comment_line_vals(self, comment):
+        return {
+            "display_type": "line_note",
+            "name": comment,
+        }
+
+    def _build_line_vals(
+        self, amount, column, header, product_code, tax_21, analytic_accounts=False
+    ):
         product = self._find_product(product_code)
         line_name = header or _("Línea %s") % column
 
@@ -663,7 +689,151 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             vals["account_id"] = account.id
         if tax_21:
             vals["tax_ids"] = [(6, 0, [tax_21.id])]
+        if analytic_accounts:
+            line_fields = self.env["account.move.line"]._fields
+            if "analytic_distribution" in line_fields:
+                vals["analytic_distribution"] = {
+                    str(account.id): 100.0 for account in analytic_accounts
+                }
+            elif "analytic_account_id" in line_fields:
+                vals["analytic_account_id"] = analytic_accounts[:1].id
         return vals
+
+    def _get_analytic_labels_from_values(self, values):
+        labels = []
+        for column in self._analytic_columns:
+            value = values[column - 1]
+            if value:
+                labels.append(
+                    {
+                        "column": column,
+                        "label": str(value).strip(),
+                    }
+                )
+        return labels
+
+    def _find_analytic_accounts(self, row, headers):
+        AnalyticAccount = self.env["account.analytic.account"]
+        accounts = AnalyticAccount.browse()
+        for analytic_item in row.get("analytic_labels", []):
+            account = self._find_analytic_account(
+                analytic_item["label"],
+                plan_label=headers.get(analytic_item["column"]),
+                column=analytic_item["column"],
+            )
+            if account and account.id not in accounts.ids:
+                accounts |= account
+        return accounts
+
+    def _find_analytic_account(self, analytic_label, plan_label=False, column=False):
+        if not analytic_label:
+            return False
+
+        AnalyticAccount = self.env["account.analytic.account"]
+        label = str(analytic_label).strip()
+        plan = self._find_analytic_plan(plan_label)
+        plan_domain = []
+        if plan and "plan_id" in AnalyticAccount._fields:
+            plan_domain = [("plan_id", "=", plan.id)]
+
+        bracket_code = self._extract_code_from_header(label)
+        candidates = [label]
+        if bracket_code:
+            candidates.append(bracket_code)
+
+        if label.startswith("[") and "]" in label:
+            name_part = label.split("]", 1)[1].strip()
+            if name_part:
+                candidates.append(name_part)
+
+        exact_domains = []
+        for candidate in candidates:
+            exact_domains.append(plan_domain + [("name", "=", candidate)])
+            if "code" in AnalyticAccount._fields:
+                exact_domains.append(plan_domain + [("code", "=", candidate)])
+
+        for domain in exact_domains:
+            account = AnalyticAccount.search(domain, limit=1)
+            if account:
+                return account
+
+        for candidate in candidates:
+            matches = AnalyticAccount.name_search(
+                name=candidate,
+                args=plan_domain,
+                operator="ilike",
+                limit=2,
+            )
+            if len(matches) == 1:
+                return AnalyticAccount.browse(matches[0][0])
+
+        column_label = self._column_number_to_letter(column) if column else _("K-N")
+        if plan:
+            raise ValidationError(
+                _(
+                    "No se encontró la cuenta analítica/etiqueta '%(label)s' "
+                    "dentro de '%(plan)s' (columna %(column)s)."
+                )
+                % {
+                    "label": analytic_label,
+                    "plan": plan.display_name,
+                    "column": column_label,
+                }
+            )
+        raise ValidationError(
+            _(
+                "No se encontró la cuenta analítica/etiqueta de la columna "
+                "%(column)s: %(label)s"
+            )
+            % {"column": column_label, "label": analytic_label}
+        )
+
+    def _find_analytic_plan(self, plan_label):
+        if not plan_label:
+            return False
+
+        try:
+            AnalyticPlan = self.env["account.analytic.plan"]
+        except KeyError:
+            return False
+
+        candidates = self._get_analytic_plan_candidates(plan_label)
+        for candidate in candidates:
+            plan = AnalyticPlan.search([("name", "=", candidate)], limit=1)
+            if plan:
+                return plan
+            if "code" in AnalyticPlan._fields:
+                plan = AnalyticPlan.search([("code", "=", candidate)], limit=1)
+                if plan:
+                    return plan
+
+        for candidate in candidates:
+            plan = AnalyticPlan.search([("name", "ilike", candidate)], limit=2)
+            if len(plan) == 1:
+                return plan
+        return False
+
+    @staticmethod
+    def _get_analytic_plan_candidates(plan_label):
+        label = str(plan_label or "").strip()
+        if not label:
+            return []
+
+        short_label = re.sub(r"(?i)^anal[ií]tico\s*", "", label).strip()
+        candidates = [label]
+        if short_label and short_label not in candidates:
+            candidates.append(short_label)
+        return candidates
+
+    @staticmethod
+    def _column_number_to_letter(column):
+        if not column:
+            return ""
+        letters = ""
+        while column:
+            column, remainder = divmod(column - 1, 26)
+            letters = chr(65 + remainder) + letters
+        return letters
 
     def _find_product(self, product_code):
         if product_code:
@@ -806,8 +976,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
     def _extract_code_from_header(header):
         if not header:
             return False
-        match = re.search(r"\[(\d+)\]", str(header))
-        return match.group(1) if match else False
+        match = re.search(r"\[([^\]]+)\]", str(header))
+        return match.group(1).strip() if match else False
 
     @staticmethod
     def _cell(sheet, row, column):
