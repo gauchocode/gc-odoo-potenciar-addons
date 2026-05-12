@@ -412,6 +412,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                     column=analytic_item["column"],
                 )
 
+            self._validate_row_references_by_type(sheet, parsed)
+
             duplicated = self._find_duplicated_invoice_by_type(parsed)
             if duplicated:
                 return {
@@ -429,7 +431,13 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                 "message": str(error),
             }
 
-    # --- Hooks por tipo (por ahora usan el comportamiento base) ---
+    def _validate_row_references_by_type(self, sheet, row):
+        validator = self._get_type_method("validate_references")
+        if validator:
+            return validator(sheet, row)
+        return True
+
+    # --- Hooks por tipo ---
     def _parse_row_type_standard(self, sheet, row_idx):
         return self._parse_row(sheet, row_idx)
 
@@ -437,7 +445,17 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         return self._parse_row(sheet, row_idx)
 
     def _parse_row_type_cpd(self, sheet, row_idx):
-        return self._parse_row(sheet, row_idx)
+        first_cell = self._cell(sheet, row_idx, 1)
+        if isinstance(first_cell, str) and first_cell.strip().lower() == "fecha fc":
+            return None
+
+        row = self._parse_row(sheet, row_idx)
+        if not row:
+            return row
+
+        row["import_type"] = "cpd"
+        self._validate_cpd_total(row)
+        return row
 
     def _parse_row_type_prestamos(self, sheet, row_idx):
         return self._parse_row(sheet, row_idx)
@@ -455,7 +473,99 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         return self._create_invoice(row, headers, mapped_codes)
 
     def _create_invoice_type_cpd(self, row, headers, product_code_by_column):
-        return self._create_invoice(row, headers, product_code_by_column)
+        self._validate_cpd_total(row)
+
+        move_model = self.env["account.move"]
+        partner = self._get_or_create_partner(row)
+        journal = self._get_sale_journal(row.get("journal_name"))
+        currency = self._get_currency(row.get("currency_label"))
+        tax_21 = self._get_sale_tax_21()
+        if not tax_21:
+            raise ValidationError(_("No se encontró un impuesto de venta del 21% para CPD."))
+        analytic_accounts = self._find_analytic_accounts(row, headers)
+
+        mapped_codes = dict(product_code_by_column or {})
+        mapped_codes[17] = mapped_codes.get(17) or "000005"
+        mapped_codes[18] = mapped_codes.get(18) or "000012"
+
+        lines = []
+        if row.get("comment"):
+            lines.append((0, 0, self._build_comment_line_vals(row["comment"])))
+
+        exempt_amount = row.get("line_amount_17") or 0.0
+        taxed_amount = row.get("line_amount_18") or 0.0
+
+        if exempt_amount > 0:
+            exempt_line_vals = self._build_line_vals(
+                amount=exempt_amount,
+                column=17,
+                header=headers.get(17),
+                product_code=mapped_codes.get(17),
+                tax_21=False,
+                analytic_accounts=analytic_accounts,
+            )
+            # CPD: la comisión de columna Q es EXENTA aunque el producto tenga
+            # impuestos de venta configurados por defecto.
+            exempt_line_vals["tax_ids"] = [(6, 0, [])]
+            lines.append(
+                (
+                    0,
+                    0,
+                    exempt_line_vals,
+                )
+            )
+        if taxed_amount > 0:
+            lines.append(
+                (
+                    0,
+                    0,
+                    self._build_line_vals(
+                        amount=taxed_amount,
+                        column=18,
+                        header=headers.get(18),
+                        product_code=mapped_codes.get(18),
+                        tax_21=tax_21,
+                        analytic_accounts=analytic_accounts,
+                    ),
+                )
+            )
+        if exempt_amount <= 0 and taxed_amount <= 0:
+            raise ValidationError(
+                _("No se pudieron determinar importes CPD para las columnas Q/R.")
+            )
+
+        origin = False
+        if row.get("period_from") and row.get("period_to"):
+            origin = _(
+                "Período: %(from)s a %(to)s"
+            ) % {
+                "from": row["period_from"].strftime("%Y-%m-%d"),
+                "to": row["period_to"].strftime("%Y-%m-%d"),
+            }
+
+        vals = {
+            "move_type": "out_invoice",
+            "partner_id": partner.id,
+            "invoice_date": row["invoice_date"],
+            "date": row["invoice_date"],
+            "journal_id": journal.id,
+            "currency_id": currency.id,
+            "ref": row.get("comment") or False,
+            "invoice_origin": origin,
+            # Mantener comportamiento existente: no setear condición de cobro
+            # desde Excel; se hereda/gestiona en el contacto.
+            "invoice_line_ids": lines,
+            "narration": row.get("comment") or False,
+        }
+
+        if row.get("period_from") and "l10n_ar_afip_service_start" in move_model._fields:
+            vals["l10n_ar_afip_service_start"] = row["period_from"]
+        if row.get("period_to") and "l10n_ar_afip_service_end" in move_model._fields:
+            vals["l10n_ar_afip_service_end"] = row["period_to"]
+        if row.get("exchange_rate") and "l10n_ar_currency_rate" in move_model._fields:
+            vals["l10n_ar_currency_rate"] = row["exchange_rate"]
+
+        return move_model.create(vals)
 
     def _create_invoice_type_prestamos(self, row, headers, product_code_by_column):
         return self._create_invoice(row, headers, product_code_by_column)
@@ -487,6 +597,45 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
 
     def _find_duplicate_type_prestamos(self, row):
         return self._find_duplicated_invoice(row)
+
+    def _validate_references_type_cpd(self, sheet, row):
+        headers = {
+            column: self._cell(sheet, 1, column)
+            for column in range(1, 21)
+        }
+        product_code_by_column = {
+            17: self._extract_code_from_header(headers.get(17)) or "000005",
+            18: self._extract_code_from_header(headers.get(18)) or "000012",
+        }
+        self._get_sale_journal(row.get("journal_name"))
+        self._get_currency(row.get("currency_label"))
+        if not self._get_sale_tax_21():
+            raise ValidationError(_("No se encontró un impuesto de venta del 21% para CPD."))
+        for column, code in product_code_by_column.items():
+            if not self._find_product(code):
+                raise ValidationError(
+                    _("No se encontró el producto CPD [%(code)s] (columna %(column)s).")
+                    % {"code": code, "column": self._column_number_to_letter(column)}
+                )
+        self._validate_cpd_total(row)
+        return True
+
+    def _validate_cpd_total(self, row):
+        expected_total = (row.get("line_amount_17") or 0.0) + (
+            row.get("line_amount_18") or 0.0
+        ) + (row.get("vat_21") or 0.0)
+        total = row.get("total") or 0.0
+        currency = self._get_currency(row.get("currency_label"))
+        tolerance = max(currency.rounding or 0.01, 0.01)
+        if abs(expected_total - total) > tolerance:
+            raise ValidationError(
+                _(
+                    "El total CPD no coincide: exento + gravado + IVA = "
+                    "%(expected).2f, total informado = %(total).2f."
+                )
+                % {"expected": expected_total, "total": total}
+            )
+        return True
 
     def _iter_preview_row_numbers(self, sheet):
         max_row = min(sheet.max_row or 0, self._preview_max_scan_rows)
@@ -992,6 +1141,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         if isinstance(value, (int, float)):
             return float(value)
         normalized = str(value).strip().replace(" ", "")
+        if normalized.endswith("%"):
+            normalized = normalized[:-1]
         if not normalized:
             return None if allow_empty else 0.0
 
