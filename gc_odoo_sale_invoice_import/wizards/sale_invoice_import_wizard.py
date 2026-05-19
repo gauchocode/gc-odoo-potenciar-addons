@@ -33,18 +33,17 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
     )
     import_type = fields.Selection(
         [
-            ("standard", "Estándar"),
             ("protectores", "Protectores"),
             ("cpd", "CPD"),
             ("prestamos", "Préstamos"),
         ],
         string="Tipo de importación",
         required=True,
-        default="standard",
+        default="protectores",
         help=(
             "Define el comportamiento del importador. "
-            "Por ahora todos usan la misma lógica base, "
-            "pero queda listo para comportamientos específicos por tipo."
+            "Protectores usa la lógica base del importador; "
+            "CPD y Préstamos pueden aplicar comportamientos específicos."
         ),
     )
     sheet_option_ids = fields.Many2many(
@@ -93,12 +92,6 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         default=True,
         help="Si está activo, se crean clientes que no existan por CUIT.",
     )
-    fallback_product_id = fields.Many2one(
-        "product.product",
-        string="Producto por defecto",
-        domain=[("sale_ok", "=", True)],
-        help="Se usa cuando no se encuentra el producto referenciado en el encabezado.",
-    )
     import_log = fields.Text(string="Resultado", readonly=True)
 
     @api.depends("preview_line_ids.state")
@@ -127,9 +120,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             read_only=True,
             data_only=True,
         )
-        selected = self._set_sheet_options_from_workbook(workbook)
-        if selected:
-            self._build_preview_for_selected_sheet(workbook)
+        self._set_sheet_options_from_workbook(workbook)
 
     @api.onchange("sheet_name")
     def _onchange_sheet_name_preview(self):
@@ -159,6 +150,9 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         if self.sheet_option_id and self.sheet_option_id.name:
             self.sheet_name = self.sheet_option_id.name
             self._onchange_sheet_name_preview()
+        else:
+            self.sheet_name = False
+            self.preview_line_ids = [(5, 0, 0)]
 
     def action_import_invoices(self):
         self.ensure_one()
@@ -312,9 +306,9 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
 
         created = Option.create([{"name": name, "token": token} for name in names])
         self.sheet_option_ids = [(6, 0, created.ids)]
-        self.sheet_option_id = created[:1]
-        self.sheet_name = self.sheet_option_id.name if self.sheet_option_id else False
-        return bool(self.sheet_option_id)
+        self.sheet_option_id = False
+        self.sheet_name = False
+        return bool(created)
 
     def _build_preview_for_selected_sheet(self, workbook):
         self.ensure_one()
@@ -438,9 +432,6 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         return True
 
     # --- Hooks por tipo ---
-    def _parse_row_type_standard(self, sheet, row_idx):
-        return self._parse_row(sheet, row_idx)
-
     def _parse_row_type_protectores(self, sheet, row_idx):
         return self._parse_row(sheet, row_idx)
 
@@ -460,17 +451,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
     def _parse_row_type_prestamos(self, sheet, row_idx):
         return self._parse_row(sheet, row_idx)
 
-    def _create_invoice_type_standard(self, row, headers, product_code_by_column):
-        return self._create_invoice(row, headers, product_code_by_column)
-
     def _create_invoice_type_protectores(self, row, headers, product_code_by_column):
-        mapped_codes = dict(product_code_by_column or {})
-        # Regla negocio PROTECTORES:
-        # Columna Q (17) siempre usa producto ref 000010 (o alias 10).
-        mapped_codes[17] = self._get_protectores_col_q_code() or mapped_codes.get(17)
-        # Columna R (18) siempre usa producto ref 000011 (o alias 11).
-        mapped_codes[18] = self._get_protectores_col_r_code() or mapped_codes.get(18)
-        return self._create_invoice(row, headers, mapped_codes)
+        return self._create_invoice(row, headers, product_code_by_column)
 
     def _create_invoice_type_cpd(self, row, headers, product_code_by_column):
         self._validate_cpd_total(row)
@@ -482,6 +464,9 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         tax_21 = self._get_sale_tax_21()
         if not tax_21:
             raise ValidationError(_("No se encontró un impuesto de venta del 21% para CPD."))
+        tax_exempt = self._get_sale_tax_exempt()
+        if not tax_exempt:
+            raise ValidationError(_("No se encontró el impuesto de venta IVA EXENTO para CPD."))
         analytic_accounts = self._find_analytic_accounts(row, headers)
 
         mapped_codes = dict(product_code_by_column or {})
@@ -504,9 +489,9 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                 tax_21=False,
                 analytic_accounts=analytic_accounts,
             )
-            # CPD: la comisión de columna Q es EXENTA aunque el producto tenga
-            # impuestos de venta configurados por defecto.
-            exempt_line_vals["tax_ids"] = [(6, 0, [])]
+            # CPD: la comisión de columna Q debe llevar explícitamente IVA EXENTO,
+            # aunque el producto tenga otros impuestos de venta por defecto.
+            exempt_line_vals["tax_ids"] = [(6, 0, [tax_exempt.id])]
             lines.append(
                 (
                     0,
@@ -570,25 +555,6 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
     def _create_invoice_type_prestamos(self, row, headers, product_code_by_column):
         return self._create_invoice(row, headers, product_code_by_column)
 
-    def _get_protectores_col_q_code(self):
-        Product = self.env["product.product"]
-        for code in ("000010", "10"):
-            product = Product.search([("default_code", "=", code)], limit=1)
-            if product:
-                return product.default_code
-        return False
-
-    def _get_protectores_col_r_code(self):
-        Product = self.env["product.product"]
-        for code in ("000011", "11"):
-            product = Product.search([("default_code", "=", code)], limit=1)
-            if product:
-                return product.default_code
-        return False
-
-    def _find_duplicate_type_standard(self, row):
-        return self._find_duplicated_invoice(row)
-
     def _find_duplicate_type_protectores(self, row):
         return self._find_duplicated_invoice(row)
 
@@ -611,6 +577,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         self._get_currency(row.get("currency_label"))
         if not self._get_sale_tax_21():
             raise ValidationError(_("No se encontró un impuesto de venta del 21% para CPD."))
+        if not self._get_sale_tax_exempt():
+            raise ValidationError(_("No se encontró el impuesto de venta IVA EXENTO para CPD."))
         for column, code in product_code_by_column.items():
             if not self._find_product(code):
                 raise ValidationError(
@@ -831,7 +799,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                 raise ValidationError(
                     _(
                         "No se encontró una cuenta de ingresos para la línea '%s'. "
-                        "Configure un producto por defecto o una cuenta de ingresos."
+                        "Configure una cuenta de ingresos."
                     )
                     % line_name
                 )
@@ -992,7 +960,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             )
             if product:
                 return product
-        return self.fallback_product_id
+        return False
 
     def _find_duplicated_invoice(self, row):
         if not row.get("comment"):
@@ -1106,6 +1074,16 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                 ("type_tax_use", "=", "sale"),
                 ("amount_type", "=", "percent"),
                 ("amount", "=", 21.0),
+                ("company_id", "=", self.env.company.id),
+            ],
+            limit=1,
+        )
+
+    def _get_sale_tax_exempt(self):
+        return self.env["account.tax"].search(
+            [
+                ("type_tax_use", "=", "sale"),
+                ("name", "ilike", "IVA EXENTO"),
                 ("company_id", "=", self.env.company.id),
             ],
             limit=1,

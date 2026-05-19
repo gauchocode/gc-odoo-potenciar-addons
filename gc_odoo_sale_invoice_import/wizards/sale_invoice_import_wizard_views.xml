@@ -23,34 +23,48 @@
                                    domain="[('id', 'in', sheet_option_ids)]"
                                    options="{'no_create': True, 'no_open': True}"/>
                             <field name="create_partners"/>
-                            <field name="fallback_product_id"/>
                         </group>
                     </group>
 
-                    <group string="Preview de filas a importar" invisible="context.get('show_log', False)">
-                        <group col="4">
-                            <field name="preview_total_count" readonly="1"/>
-                            <field name="preview_ready_count" readonly="1"/>
-                            <field name="preview_duplicate_count" readonly="1"/>
-                            <field name="preview_error_count" readonly="1"/>
-                        </group>
-                        <field name="preview_line_ids" nolabel="1" readonly="1">
-                            <tree create="false" delete="false" edit="false">
-                                <field name="row_number"/>
-                                <field name="state"/>
-                                <field name="invoice_date"/>
-                                <field name="cuit"/>
-                                <field name="partner_name"/>
-                                <field name="comment"/>
-                                <field name="journal_name"/>
-                                <field name="line_amount_17"/>
-                                <field name="line_amount_18"/>
-                                <field name="vat_21"/>
-                                <field name="total"/>
-                                <field name="message"/>
-                            </tree>
-                        </field>
-                    </group>
+                    <separator string="Preview de filas a importar"
+                               invisible="context.get('show_log', False)"/>
+                    <div class="d-flex justify-content-between"
+                         style="width: 100%; margin-bottom: 12px;"
+                         invisible="context.get('show_log', False)">
+                        <div style="width: 24%;">
+                            <label for="preview_total_count"/>
+                            <field name="preview_total_count" readonly="1" nolabel="1"/>
+                        </div>
+                        <div style="width: 24%;">
+                            <label for="preview_ready_count"/>
+                            <field name="preview_ready_count" readonly="1" nolabel="1"/>
+                        </div>
+                        <div style="width: 24%;">
+                            <label for="preview_duplicate_count"/>
+                            <field name="preview_duplicate_count" readonly="1" nolabel="1"/>
+                        </div>
+                        <div style="width: 24%;">
+                            <label for="preview_error_count"/>
+                            <field name="preview_error_count" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+                    <field name="preview_line_ids" nolabel="1" readonly="1"
+                           invisible="context.get('show_log', False)">
+                        <tree create="false" delete="false" edit="false">
+                            <field name="row_number"/>
+                            <field name="state"/>
+                            <field name="invoice_date"/>
+                            <field name="cuit"/>
+                            <field name="partner_name"/>
+                            <field name="comment"/>
+                            <field name="journal_name"/>
+                            <field name="line_amount_17"/>
+                            <field name="line_amount_18"/>
+                            <field name="vat_21"/>
+                            <field name="total"/>
+                            <field name="message"/>
+                        </tree>
+                    </field>
 
                     <div invisible="not context.get('show_log', False)">
                         <separator string="Resultado de la importación"/>

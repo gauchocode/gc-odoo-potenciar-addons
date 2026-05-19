@@ -180,6 +180,15 @@ class TestCpdSaleInvoiceImport(TransactionCase):
                 "company_id": self.env.company.id,
             }
         )
+        tax_exempt = self.env["account.tax"].create(
+            {
+                "name": "IVA EXENTO",
+                "amount_type": "percent",
+                "amount": 0.0,
+                "type_tax_use": "sale",
+                "company_id": self.env.company.id,
+            }
+        )
         product_exempt = self.env["product.product"].create(
             {
                 "name": "Comision CPD",
@@ -222,5 +231,5 @@ class TestCpdSaleInvoiceImport(TransactionCase):
         self.assertEqual(len(taxed_line), 1)
         self.assertAlmostEqual(exempt_line.price_unit, 400000.0)
         self.assertAlmostEqual(taxed_line.price_unit, 9600000.0)
-        self.assertFalse(exempt_line.tax_ids.filtered(lambda item: item.amount == 21.0))
+        self.assertEqual(exempt_line.tax_ids, tax_exempt)
         self.assertTrue(taxed_line.tax_ids.filtered(lambda item: item.amount == 21.0))

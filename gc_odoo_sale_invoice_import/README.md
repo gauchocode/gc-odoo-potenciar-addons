@@ -26,7 +26,7 @@ Reglas CPD:
 - Las filas de encabezado repetidas se omiten cuando la columna A es `Fecha FC`.
 - El cliente se busca/crea con `CUIT` y `Denominación`.
 - La fecha de factura se toma de `Fecha FC`.
-- La columna Q crea una línea con producto `[000005]` **sin IVA 21%**.
+- La columna Q crea una línea con producto `[000005]` **con IVA EXENTO**.
 - La columna R crea una línea con producto `[000012]` **con IVA ventas 21%**.
 - El importador valida que `EXENTO + GRAVADO + IVA = TOTAL` dentro de la tolerancia de redondeo de la moneda.
 - `Condición de Cobro` mantiene el comportamiento general documentado arriba: no se asigna directamente en la factura.
