@@ -60,6 +60,7 @@
                             <field name="journal_name"/>
                             <field name="line_amount_17"/>
                             <field name="line_amount_18"/>
+                            <field name="line_amount_19"/>
                             <field name="vat_21"/>
                             <field name="total"/>
                             <field name="message"/>

@@ -36,6 +36,8 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
             ("protectores", "Protectores"),
             ("cpd", "CPD"),
             ("prestamos", "Préstamos"),
+            ("pagares", "Pagarés"),
+            ("on", "ON"),
         ],
         string="Tipo de importación",
         required=True,
@@ -191,11 +193,12 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
 
         headers = {
             column: (sheet.cell(row=1, column=column).value or "").strip()
-            for column in range(1, 21)
+            for column in range(1, 22)
         }
         product_code_by_column = {
             17: self._extract_code_from_header(headers.get(17)),
             18: self._extract_code_from_header(headers.get(18)),
+            19: self._extract_code_from_header(headers.get(19)),
         }
 
         created, skipped, errors = 0, 0, 0
@@ -345,6 +348,7 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                             "total": parsed.get("total"),
                             "line_amount_17": parsed.get("line_amount_17"),
                             "line_amount_18": parsed.get("line_amount_18"),
+                            "line_amount_19": parsed.get("line_amount_19"),
                             "vat_21": parsed.get("vat_21"),
                         },
                     )
@@ -449,7 +453,48 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         return row
 
     def _parse_row_type_prestamos(self, sheet, row_idx):
-        return self._parse_row(sheet, row_idx)
+        first_cell = self._cell(sheet, row_idx, 1)
+        if isinstance(first_cell, str) and first_cell.strip().lower() == "fecha fc":
+            return None
+
+        values = [self._cell(sheet, row_idx, column) for column in range(1, 22)]
+        fecha_fc = values[0]
+        cuit = values[3]
+        partner_name = values[4]
+        total = self._to_float(values[20])  # col 21
+
+        if not any(values[:21]):
+            return None
+        if not (fecha_fc and cuit and partner_name and total):
+            return None
+
+        invoice_date = self._to_date(fecha_fc)
+        cuit_clean = re.sub(r"\D", "", str(cuit or ""))
+        if len(cuit_clean) < 8:
+            raise ValidationError(_("CUIT inválido: %s") % cuit)
+
+        return {
+            "invoice_date": invoice_date,
+            "period_from": self._to_date(values[1], allow_empty=True),
+            "period_to": self._to_date(values[2], allow_empty=True),
+            "cuit": cuit_clean,
+            "partner_name": str(partner_name).strip(),
+            "comment": str(values[5]).strip() if values[5] else False,
+            "exchange_rate": self._to_float(values[6], allow_empty=True),
+            "currency_label": str(values[7]).strip() if values[7] else False,
+            "journal_name": str(values[8]).strip() if values[8] else False,
+            "payment_term_name": str(values[9]).strip() if values[9] else False,
+            "analytic_label": str(values[10]).strip() if values[10] else False,
+            "analytic_labels": self._get_analytic_labels_from_values(values),
+            "base_total": self._to_float(values[14], allow_empty=True) or 0.0,
+            "pct": self._to_float(values[15], allow_empty=True),
+            "line_amount_17": self._to_float(values[16], allow_empty=True) or 0.0,
+            "line_amount_18": self._to_float(values[17], allow_empty=True) or 0.0,
+            "line_amount_19": self._to_float(values[18], allow_empty=True) or 0.0,
+            "vat_21": self._to_float(values[19], allow_empty=True) or 0.0,
+            "total": total,
+            "import_type": "prestamos",
+        }
 
     def _create_invoice_type_protectores(self, row, headers, product_code_by_column):
         return self._create_invoice(row, headers, product_code_by_column)
@@ -553,7 +598,79 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         return move_model.create(vals)
 
     def _create_invoice_type_prestamos(self, row, headers, product_code_by_column):
-        return self._create_invoice(row, headers, product_code_by_column)
+        move_model = self.env["account.move"]
+        partner = self._get_or_create_partner(row)
+        journal = self._get_sale_journal(row.get("journal_name"))
+        currency = self._get_currency(row.get("currency_label"))
+        tax_21 = self._get_sale_tax_21()
+        if not tax_21:
+            raise ValidationError(_("No se encontró un impuesto de venta del 21% para Préstamos."))
+        analytic_accounts = self._find_analytic_accounts(row, headers)
+
+        mapped_codes = dict(product_code_by_column or {})
+        mapped_codes[17] = mapped_codes.get(17) or "000003"
+        mapped_codes[18] = mapped_codes.get(18) or "000004"
+
+        lines = []
+        if row.get("comment"):
+            lines.append((0, 0, self._build_comment_line_vals(row["comment"])))
+
+        amount_lines = 0
+        for column in (17, 18, 19):
+            amount = row.get(f"line_amount_{column}") or 0.0
+            if amount <= 0:
+                continue
+            lines.append(
+                (
+                    0,
+                    0,
+                    self._build_line_vals(
+                        amount=amount,
+                        column=column,
+                        header=headers.get(column),
+                        product_code=mapped_codes.get(column),
+                        tax_21=tax_21,
+                        analytic_accounts=analytic_accounts,
+                    ),
+                )
+            )
+            amount_lines += 1
+
+        if not amount_lines:
+            raise ValidationError(
+                _("No se pudieron determinar importes de Préstamos para las columnas Q/R/S.")
+            )
+
+        origin = False
+        if row.get("period_from") and row.get("period_to"):
+            origin = _(
+                "Período: %(from)s a %(to)s"
+            ) % {
+                "from": row["period_from"].strftime("%Y-%m-%d"),
+                "to": row["period_to"].strftime("%Y-%m-%d"),
+            }
+
+        vals = {
+            "move_type": "out_invoice",
+            "partner_id": partner.id,
+            "invoice_date": row["invoice_date"],
+            "date": row["invoice_date"],
+            "journal_id": journal.id,
+            "currency_id": currency.id,
+            "ref": row.get("comment") or False,
+            "invoice_origin": origin,
+            "invoice_line_ids": lines,
+            "narration": row.get("comment") or False,
+        }
+
+        if row.get("period_from") and "l10n_ar_afip_service_start" in move_model._fields:
+            vals["l10n_ar_afip_service_start"] = row["period_from"]
+        if row.get("period_to") and "l10n_ar_afip_service_end" in move_model._fields:
+            vals["l10n_ar_afip_service_end"] = row["period_to"]
+        if row.get("exchange_rate") and "l10n_ar_currency_rate" in move_model._fields:
+            vals["l10n_ar_currency_rate"] = row["exchange_rate"]
+
+        return move_model.create(vals)
 
     def _find_duplicate_type_protectores(self, row):
         return self._find_duplicated_invoice(row)
@@ -563,6 +680,142 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
 
     def _find_duplicate_type_prestamos(self, row):
         return self._find_duplicated_invoice(row)
+
+    def _parse_row_type_pagares(self, sheet, row_idx):
+        return self._parse_row_type_prestamos(sheet, row_idx)
+
+    def _create_invoice_type_pagares(self, row, headers, product_code_by_column):
+        move_model = self.env["account.move"]
+        partner = self._get_or_create_partner(row)
+        journal = self._get_sale_journal(row.get("journal_name"))
+        currency = self._get_currency(row.get("currency_label"))
+        tax_21 = self._get_sale_tax_21()
+        if not tax_21:
+            raise ValidationError(_("No se encontró un impuesto de venta del 21% para Pagarés."))
+        tax_exempt = self._get_sale_tax_exempt()
+        if not tax_exempt:
+            raise ValidationError(_("No se encontró el impuesto de venta IVA EXENTO para Pagarés."))
+        analytic_accounts = self._find_analytic_accounts(row, headers)
+
+        lines = []
+        if row.get("comment"):
+            lines.append((0, 0, self._build_comment_line_vals(row["comment"])))
+
+        amount_lines = 0
+
+        # Col 17: exento (IVA EXENTO)
+        exempt_amount = row.get("line_amount_17") or 0.0
+        if exempt_amount > 0:
+            exempt_vals = self._build_line_vals(
+                amount=exempt_amount,
+                column=17,
+                header=headers.get(17),
+                product_code=product_code_by_column.get(17),
+                tax_21=False,
+                analytic_accounts=analytic_accounts,
+            )
+            exempt_vals["tax_ids"] = [(6, 0, [tax_exempt.id])]
+            lines.append((0, 0, exempt_vals))
+            amount_lines += 1
+
+        # Cols 18 y 19: gravados (IVA 21%)
+        for column in (18, 19):
+            amount = row.get(f"line_amount_{column}") or 0.0
+            if amount <= 0:
+                continue
+            lines.append(
+                (
+                    0,
+                    0,
+                    self._build_line_vals(
+                        amount=amount,
+                        column=column,
+                        header=headers.get(column),
+                        product_code=product_code_by_column.get(column),
+                        tax_21=tax_21,
+                        analytic_accounts=analytic_accounts,
+                    ),
+                )
+            )
+            amount_lines += 1
+
+        if not amount_lines:
+            raise ValidationError(
+                _("No se pudieron determinar importes de Pagarés para las columnas Q/R/S.")
+            )
+
+        origin = False
+        if row.get("period_from") and row.get("period_to"):
+            origin = _(
+                "Período: %(from)s a %(to)s"
+            ) % {
+                "from": row["period_from"].strftime("%Y-%m-%d"),
+                "to": row["period_to"].strftime("%Y-%m-%d"),
+            }
+
+        vals = {
+            "move_type": "out_invoice",
+            "partner_id": partner.id,
+            "invoice_date": row["invoice_date"],
+            "date": row["invoice_date"],
+            "journal_id": journal.id,
+            "currency_id": currency.id,
+            "ref": row.get("comment") or False,
+            "invoice_origin": origin,
+            "invoice_line_ids": lines,
+            "narration": row.get("comment") or False,
+        }
+
+        if row.get("period_from") and "l10n_ar_afip_service_start" in move_model._fields:
+            vals["l10n_ar_afip_service_start"] = row["period_from"]
+        if row.get("period_to") and "l10n_ar_afip_service_end" in move_model._fields:
+            vals["l10n_ar_afip_service_end"] = row["period_to"]
+        if row.get("exchange_rate") and "l10n_ar_currency_rate" in move_model._fields:
+            vals["l10n_ar_currency_rate"] = row["exchange_rate"]
+
+        return move_model.create(vals)
+
+    def _find_duplicate_type_pagares(self, row):
+        return self._find_duplicated_invoice(row)
+
+    def _parse_row_type_on(self, sheet, row_idx):
+        first_cell = self._cell(sheet, row_idx, 1)
+        if isinstance(first_cell, str) and first_cell.strip().lower() == "fecha fc":
+            return None
+        return self._parse_row(sheet, row_idx)
+
+    def _create_invoice_type_on(self, row, headers, product_code_by_column):
+        return self._create_invoice_type_cpd(row, headers, product_code_by_column)
+
+    def _find_duplicate_type_on(self, row):
+        return self._find_duplicated_invoice(row)
+
+    def _validate_references_type_on(self, sheet, row):
+        return self._validate_references_type_cpd(sheet, row)
+
+    def _validate_references_type_pagares(self, sheet, row):
+        headers = {
+            column: self._cell(sheet, 1, column)
+            for column in range(1, 22)
+        }
+        product_code_by_column = {
+            17: self._extract_code_from_header(headers.get(17)),
+            18: self._extract_code_from_header(headers.get(18)),
+            19: self._extract_code_from_header(headers.get(19)),
+        }
+        self._get_sale_journal(row.get("journal_name"))
+        self._get_currency(row.get("currency_label"))
+        if not self._get_sale_tax_21():
+            raise ValidationError(_("No se encontró un impuesto de venta del 21% para Pagarés."))
+        if not self._get_sale_tax_exempt():
+            raise ValidationError(_("No se encontró el impuesto de venta IVA EXENTO para Pagarés."))
+        for column, code in product_code_by_column.items():
+            if code and not self._find_product(code):
+                raise ValidationError(
+                    _("No se encontró el producto Pagarés [%(code)s] (columna %(column)s).")
+                    % {"code": code, "column": self._column_number_to_letter(column)}
+                )
+        return True
 
     def _validate_references_type_cpd(self, sheet, row):
         headers = {
@@ -586,6 +839,31 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
                     % {"code": code, "column": self._column_number_to_letter(column)}
                 )
         self._validate_cpd_total(row)
+        return True
+
+    def _validate_references_type_prestamos(self, sheet, row):
+        headers = {
+            column: self._cell(sheet, 1, column)
+            for column in range(1, 22)
+        }
+        product_code_by_column = {
+            17: self._extract_code_from_header(headers.get(17)),
+            18: self._extract_code_from_header(headers.get(18)),
+            19: self._extract_code_from_header(headers.get(19)),
+        }
+        self._get_sale_journal(row.get("journal_name"))
+        self._get_currency(row.get("currency_label"))
+        if not self._get_sale_tax_21():
+            raise ValidationError(_("No se encontró un impuesto de venta del 21% para Préstamos."))
+        mapped_codes = dict(product_code_by_column or {})
+        mapped_codes[17] = mapped_codes.get(17) or "000003"
+        mapped_codes[18] = mapped_codes.get(18) or "000004"
+        for column, code in mapped_codes.items():
+            if code and not self._find_product(code):
+                raise ValidationError(
+                    _("No se encontró el producto Préstamos [%(code)s] (columna %(column)s).")
+                    % {"code": code, "column": self._column_number_to_letter(column)}
+                )
         return True
 
     def _validate_cpd_total(self, row):
@@ -624,6 +902,19 @@ class GcSaleInvoiceImportWizard(models.TransientModel):
         return any(self._cell(sheet, row_idx, col) not in (None, "") for col in key_columns)
 
     def _fallback_row_data_for_preview(self, sheet, row_idx):
+        if self.import_type in ("prestamos", "pagares"):
+            return {
+                "invoice_date": False,
+                "cuit": str(self._cell(sheet, row_idx, 4) or ""),
+                "partner_name": str(self._cell(sheet, row_idx, 5) or ""),
+                "comment": str(self._cell(sheet, row_idx, 6) or ""),
+                "journal_name": str(self._cell(sheet, row_idx, 9) or ""),
+                "total": self._to_float(self._cell(sheet, row_idx, 21), allow_empty=True) or 0.0,
+                "line_amount_17": self._to_float(self._cell(sheet, row_idx, 17), allow_empty=True) or 0.0,
+                "line_amount_18": self._to_float(self._cell(sheet, row_idx, 18), allow_empty=True) or 0.0,
+                "line_amount_19": self._to_float(self._cell(sheet, row_idx, 19), allow_empty=True) or 0.0,
+                "vat_21": self._to_float(self._cell(sheet, row_idx, 20), allow_empty=True) or 0.0,
+            }
         return {
             "invoice_date": False,
             "cuit": str(self._cell(sheet, row_idx, 4) or ""),
@@ -1201,5 +1492,6 @@ class GcSaleInvoiceImportPreviewLine(models.TransientModel):
     journal_name = fields.Char(string="Diario")
     line_amount_17 = fields.Float(string="Línea [000010]")
     line_amount_18 = fields.Float(string="Línea [000011]")
+    line_amount_19 = fields.Float(string="Línea [000012]")
     vat_21 = fields.Float(string="IVA 21%")
     total = fields.Float(string="Total")
