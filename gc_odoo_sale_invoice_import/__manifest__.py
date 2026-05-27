@@ -1,6 +1,6 @@
 {
     "name": "Importador de Facturas de Venta (Excel)",
-    "version": "16.0.1.0.0",
+    "version": "16.0.2.0.0",
     "summary": "Importa facturas de cliente en borrador desde la primera hoja de Excel",
     "author": "GauchoCode",
     "license": "AGPL-3",
