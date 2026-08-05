@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_currency_form_exchange_rate_provider" model="ir.ui.view">
+        <field name="name">res.currency.form.exchange.rate.provider</field>
+        <field name="model">res.currency</field>
+        <field name="inherit_id" ref="base.view_currency_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Cotización automática" name="exchange_rate_provider">
+                    <field name="l10n_ar_rate_provider"/>
+                    <field name="l10n_ar_provider_currency_id"
+                           domain="[('provider', '=', l10n_ar_rate_provider)]"
+                           options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"
+                           attrs="{'required': [('l10n_ar_rate_provider', '!=', False)],
+                                   'invisible': [('l10n_ar_rate_provider', '=', False)]}"/>
+                    <field name="l10n_ar_rate_value"
+                           attrs="{'invisible': [('l10n_ar_rate_provider', '=', False)]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

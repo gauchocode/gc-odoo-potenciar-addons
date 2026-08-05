@@ -1,171 +1,148 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api, exceptions, _
-import requests
-from lxml import etree
-import datetime
 import logging
-from bs4 import BeautifulSoup
 
+from odoo import models
+
+from . import bna_rate_providers
 
 _logger = logging.getLogger(__name__)
+
 
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    l10n_ar_bna_rate_type = fields.Selection(
-        selection=[('billete', 'Billete'), ('divisa', 'Divisa')],
-        string='Rate',
-        required=True,
-        default='billete'
-    )
-    l10n_ar_bna_currency_value = fields.Selection(
-        selection=[('compra', 'Compra'), ('venta', 'Venta'), ('promedio', 'Promedio Compra-Venta')],
-        string='Value',
-        required=True,
-        default='venta'
+    def _configured_rate_currencies(self):
+        self.ensure_one()
+        currencies = self.env["res.currency"].with_company(self).search([])
+        return currencies.filtered(
+            lambda currency: currency.l10n_ar_rate_provider
+            and currency.l10n_ar_provider_currency_id
         )
-    def _parse_bna_data(self, available_currencies):
-        from lxml import etree
-        import requests
-        import datetime
 
-        # Mapeo de nombres en la tabla BNA a código Odoo
-        MAPEO_BNA = {
-            "Dolar U.S.A": "USD",
-            "Euro": "EUR",
-            "Real": "BRL",
-            "Libra Esterlina": "GBP",
-            "Franco Suizo": "CHF",
-            "Yen": "JPY",
-            "Dólar Canadiense": "CAD",
-            "Corona Danesa": "DKK",
-            "Corona Noruega": "NOK",
-            "Corona Sueca": "SEK",
-            "Yuan": "CNY",
-            "Dólar Australiano": "AUD",
+    @staticmethod
+    def _selected_rate(data, value_type):
+        compra = data.get("compra")
+        venta = data.get("venta")
+        if value_type == "compra":
+            return compra
+        if value_type == "venta":
+            return venta
+        if compra is None or venta is None:
+            return None
+        return (compra + venta) / 2.0
+
+    def _generate_currency_rate(self, currency, data):
+        self.ensure_one()
+        rate_value = self._selected_rate(data, currency.l10n_ar_rate_value)
+        if not rate_value or rate_value <= 0:
+            _logger.warning(
+                "No hay una cotización %s válida para %s (%s)",
+                currency.l10n_ar_rate_value,
+                currency.name,
+                currency.l10n_ar_provider_currency_id.code,
+            )
+            return
+
+        rate_model = self.env["res.currency.rate"]
+        domain = [
+            ("currency_id", "=", currency.id),
+            ("company_id", "=", self.id),
+            ("name", "=", data["fecha"]),
+        ]
+        rate = rate_model.search(domain, limit=1)
+        values = {
+            "currency_id": currency.id,
+            "company_id": self.id,
+            "company_rate": 1.0 / rate_value,
+            "name": data["fecha"],
         }
+        if rate:
+            rate.write({"company_rate": values["company_rate"]})
+        else:
+            rate_model.create(values)
 
-        POR_100 = ["JPY", "CHF", "CAD", "DKK", "NOK", "SEK", "CNY"]
+        _logger.info(
+            "Cotización actualizada para %s con %s/%s: %s",
+            currency.name,
+            currency.l10n_ar_rate_provider,
+            currency.l10n_ar_provider_currency_id.code,
+            rate_value,
+        )
 
-        url = "https://www.bna.com.ar/Personas"
-        try:
-            response = requests.get(url, timeout=10, headers={
-                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64)'
-            })
-            response.raise_for_status()
-        except Exception as e:
-            _logger.error(f"Error accediendo a la web del BNA: {e}")
-            raise exceptions.UserError("No se pudo conectar al sitio del Banco Nación.")
-
-        page = etree.HTML(response.text)
-
-        def extract_table_data(div_id):
-            values = {}
-            div = page.xpath(f"//div[@id='{div_id}']")
-            if not div:
-                return {}
-
-            table = div[0].xpath(".//table")[0]
-            rows = table.xpath(".//tbody/tr")
-
-            for row in rows:
-                cols = row.xpath(".//td")
-                if len(cols) != 3:
-                    continue
-                nombre_moneda = cols[0].text.strip()
-                compra = float(cols[1].text.strip().replace(",", "."))
-                venta = float(cols[2].text.strip().replace(",", "."))
-
-                values[nombre_moneda] = {
-                    "compra": compra,
-                    "venta": venta
-                }
-            return values
-
-        billete_data = extract_table_data("billetes")
-        divisa_data = extract_table_data("divisas")
-
-        # Fecha = hoy (BNA no publica la fecha en esta página)
-        fecha_cotizacion = datetime.date.today()
-
-        codigos_odoo = set(moneda.name for moneda in available_currencies)
-        values = {}
-
-        for nombre_bna, currency_code in MAPEO_BNA.items():
-            if currency_code not in codigos_odoo:
-                continue
-
-            compra_billete = billete_data.get(nombre_bna, {}).get("compra")
-            venta_billete = billete_data.get(nombre_bna, {}).get("venta")
-            compra_divisa = divisa_data.get(nombre_bna, {}).get("compra")
-            venta_divisa = divisa_data.get(nombre_bna, {}).get("venta")
-
-            factor = 100.0 if currency_code in POR_100 else 1.0
-
-            values[currency_code] = {
-                "billete_compra": (compra_billete or 0.0) / factor,
-                "billete_venta": (venta_billete or 0.0) / factor,
-                "divisa_compra": (compra_divisa or 0.0) / factor,
-                "divisa_venta": (venta_divisa or 0.0) / factor,
-                "fecha": fecha_cotizacion
-            }
-
-        return values or False
-
-
-    def _generate_currency_rates(self, parsed_data):
-        currency_rate_obj = self.env['res.currency.rate']
-        bna_currency_model = self.env['account.bna.currencies']
-
+    def update_currency_rates_from_providers(self):
+        """Update every configured currency, fetching each provider only once."""
         for company in self:
-            rate_type = company.l10n_ar_bna_rate_type
-            _logger.info(f"Processing BNA rates for company {company.name} with rate type {rate_type}")
-            currency_value = company.l10n_ar_bna_currency_value
-            _logger.info(f"Currency value selected: {currency_value}")
-            _logger.info(f"parsed_data.items(): {parsed_data.items()}")
-            for currency_name, data in parsed_data.items():
-                bna_currency = bna_currency_model.search([
-                    ('name', '=', currency_name),
-                ], limit=1)
-                if not bna_currency or not bna_currency.property_read_rate:
+            currencies = company._configured_rate_currencies()
+            provider_results = {}
+            for currency in currencies:
+                provider_name = currency.l10n_ar_rate_provider
+                if provider_name not in provider_results:
+                    try:
+                        provider_results[provider_name] = (
+                            bna_rate_providers.get_provider(provider_name).fetch()
+                        )
+                    except Exception:
+                        configured = currencies.filtered(
+                            lambda item: item.l10n_ar_rate_provider == provider_name
+                        )
+                        _logger.exception(
+                            "Falló la consulta al proveedor %s para la empresa %s. "
+                            "Monedas configuradas: %s",
+                            provider_name,
+                            company.name,
+                            ", ".join(configured.mapped("name")),
+                        )
+                        raise
+
+                    _logger.info(
+                        "Proveedor %s consultado para %s: %d cotizaciones recibidas",
+                        provider_name,
+                        company.name,
+                        len(provider_results[provider_name]),
+                    )
+
+                provider_currency = currency.l10n_ar_provider_currency_id.code
+                available_rates = provider_results[provider_name]
+                data = available_rates.get(provider_currency)
+
+                # Compatibility with DolarAPI catalog records created before
+                # identifiers became unambiguous ("oficial" -> "USD:oficial").
+                if not data and provider_name == "dolar_api" and ":" not in provider_currency:
+                    composite_key = "%s:%s" % (currency.name, provider_currency)
+                    data = available_rates.get(composite_key)
+                    if data:
+                        _logger.warning(
+                            "La moneda %s usa el identificador anterior de DolarAPI '%s'. "
+                            "Se resolvió automáticamente como '%s'. Actualice el módulo "
+                            "para migrar el catálogo.",
+                            currency.name,
+                            provider_currency,
+                            composite_key,
+                        )
+
+                if not data:
+                    currency_options = sorted(
+                        key for key in available_rates
+                        if key == currency.name or key.startswith("%s:" % currency.name)
+                    )
+                    available_preview = sorted(available_rates)[:20]
+                    _logger.warning(
+                        "No se pudo actualizar %s para la empresa %s. Proveedor=%s; "
+                        "identificador configurado='%s'; opciones compatibles=%s; "
+                        "primeros identificadores recibidos=%s; total recibido=%d. "
+                        "Revise la configuración de 'Moneda en el proveedor'.",
+                        currency.name,
+                        company.name,
+                        provider_name,
+                        provider_currency,
+                        currency_options or "ninguna",
+                        available_preview or "ninguno",
+                        len(available_rates),
+                    )
                     continue
-
-                if currency_value == 'venta':
-                    rate = data[f'{rate_type}_venta']
-                elif currency_value == 'compra':
-                    rate = data[f'{rate_type}_compra']
-                else:
-                    rate = (data[f'{rate_type}_venta'] + data[f'{rate_type}_compra']) / 2
-
-                units = bna_currency.bna_units or 1.0
-                rate_value = rate / units
-                _logger.info(f"Processing {currency_name} with rate {rate_value} and units {units}")
-
-                currency_id = bna_currency.currency_id
-                existing_rate = currency_rate_obj.search([
-                    ('currency_id', '=', currency_id.id),
-                    ('name', '=', data['fecha'])
-                ], limit=1)
-                vals = {
-                    'currency_id': currency_id.id,
-                    'company_rate': 1.0 / rate_value,
-                    'name': data['fecha'],
-                }
-                if existing_rate:
-                    existing_rate.write({'company_rate': 1.0 / rate_value})
-                else:
-                    currency_rate_obj.create(vals)
-                _logger.info(f"Updated rate for {currency_name} on {data['fecha']}: {1.0 / rate_value}")
-
-            # Asegurar que ARS esté siempre a 1
+                company._generate_currency_rate(currency, data)
 
     def update_bna_currency_rates(self):
-        for company in self:
-            currencies = self.env['res.currency'].search([('name', 'in', ['USD', 'EUR', 'BRL'])])
-            parsed_data = company._parse_bna_data(currencies)
-            _logger.info(f"Parsed data for {company.name}: {parsed_data}")
-            if not parsed_data:
-                _logger.warning('No parsed data from BNA!')
-                continue
-            company._generate_currency_rates(parsed_data)
+        """Backward-compatible entry point used by older integrations."""
+        return self.update_currency_rates_from_providers()

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="provider_currency_bna_historico_dolar_usa" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar estadounidense</field>
+        <field name="code">Dolar U.S.A</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_libra_esterlina" model="l10n_ar.rate.provider.currency">
+        <field name="name">Libra esterlina</field>
+        <field name="code">Libra Esterlina</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_euro" model="l10n_ar.rate.provider.currency">
+        <field name="name">Euro</field>
+        <field name="code">Euro</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_franco_suizos" model="l10n_ar.rate.provider.currency">
+        <field name="name">Franco suizo</field>
+        <field name="code">Franco Suizos</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_yenes" model="l10n_ar.rate.provider.currency">
+        <field name="name">Yen japonés</field>
+        <field name="code">YENES</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_dolares_canadienses" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar canadiense</field>
+        <field name="code">Dolares Canadienses</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_coronas_danesas" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona danesa</field>
+        <field name="code">Coronas Danesas</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_coronas_noruegas" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona noruega</field>
+        <field name="code">Coronas Noruegas</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_coronas_suecas" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona sueca</field>
+        <field name="code">Coronas Suecas</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_yuan" model="l10n_ar.rate.provider.currency">
+        <field name="name">Yuan</field>
+        <field name="code">Yuan</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bna_historico_dolar_australiano" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar australiano</field>
+        <field name="code">Dolar Australiano</field>
+        <field name="provider">bna_historico</field>
+    </record>
+    <record id="provider_currency_bcra_api_aud" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar australiano</field>
+        <field name="code">AUD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_awg" model="l10n_ar.rate.provider.currency">
+        <field name="name">Florín</field>
+        <field name="code">AWG</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_bob" model="l10n_ar.rate.provider.currency">
+        <field name="name">Boliviano</field>
+        <field name="code">BOB</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_brl" model="l10n_ar.rate.provider.currency">
+        <field name="name">Real</field>
+        <field name="code">BRL</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_cad" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar canadiense</field>
+        <field name="code">CAD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_chf" model="l10n_ar.rate.provider.currency">
+        <field name="name">Franco suizo</field>
+        <field name="code">CHF</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_clp" model="l10n_ar.rate.provider.currency">
+        <field name="name">Peso chileno</field>
+        <field name="code">CLP</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_cnh" model="l10n_ar.rate.provider.currency">
+        <field name="name">Yuan offshore</field>
+        <field name="code">CNH</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_cny" model="l10n_ar.rate.provider.currency">
+        <field name="name">Yuan</field>
+        <field name="code">CNY</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_cop" model="l10n_ar.rate.provider.currency">
+        <field name="name">Peso colombiano</field>
+        <field name="code">COP</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_czk" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona checa</field>
+        <field name="code">CZK</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_dkk" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona danesa</field>
+        <field name="code">DKK</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_eur" model="l10n_ar.rate.provider.currency">
+        <field name="name">Euro</field>
+        <field name="code">EUR</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_gbp" model="l10n_ar.rate.provider.currency">
+        <field name="name">Libra esterlina</field>
+        <field name="code">GBP</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_hkd" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar de Hong Kong</field>
+        <field name="code">HKD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_ils" model="l10n_ar.rate.provider.currency">
+        <field name="name">Libra israelí</field>
+        <field name="code">ILS</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_inr" model="l10n_ar.rate.provider.currency">
+        <field name="name">Rupia india</field>
+        <field name="code">INR</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_jpy" model="l10n_ar.rate.provider.currency">
+        <field name="name">Yen japonés</field>
+        <field name="code">JPY</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_mxp" model="l10n_ar.rate.provider.currency">
+        <field name="name">Peso mexicano</field>
+        <field name="code">MXP</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_nio" model="l10n_ar.rate.provider.currency">
+        <field name="name">Córdoba nicaragüense</field>
+        <field name="code">NIO</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_nok" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona noruega</field>
+        <field name="code">NOK</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_nzd" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar neozelandés</field>
+        <field name="code">NZD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_pen" model="l10n_ar.rate.provider.currency">
+        <field name="name">Sol peruano</field>
+        <field name="code">PEN</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_pyg" model="l10n_ar.rate.provider.currency">
+        <field name="name">Guaraní</field>
+        <field name="code">PYG</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_ref" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar referencia Com. 3500</field>
+        <field name="code">REF</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_rsd" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dinar serbio</field>
+        <field name="code">RSD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_rub" model="l10n_ar.rate.provider.currency">
+        <field name="name">Rublo ruso</field>
+        <field name="code">RUB</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_sek" model="l10n_ar.rate.provider.currency">
+        <field name="name">Corona sueca</field>
+        <field name="code">SEK</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_sgd" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar de Singapur</field>
+        <field name="code">SGD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_try" model="l10n_ar.rate.provider.currency">
+        <field name="name">Lira turca</field>
+        <field name="code">TRY</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_usd" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar estadounidense</field>
+        <field name="code">USD</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_uyu" model="l10n_ar.rate.provider.currency">
+        <field name="name">Peso uruguayo</field>
+        <field name="code">UYU</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_veb" model="l10n_ar.rate.provider.currency">
+        <field name="name">Bolívar</field>
+        <field name="code">VEB</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_vnd" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dong vietnamita</field>
+        <field name="code">VND</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_xag" model="l10n_ar.rate.provider.currency">
+        <field name="name">Plata</field>
+        <field name="code">XAG</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_xau" model="l10n_ar.rate.provider.currency">
+        <field name="name">Oro</field>
+        <field name="code">XAU</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_xdr" model="l10n_ar.rate.provider.currency">
+        <field name="name">DEG</field>
+        <field name="code">XDR</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_bcra_api_zar" model="l10n_ar.rate.provider.currency">
+        <field name="name">Rand sudafricano</field>
+        <field name="code">ZAR</field>
+        <field name="provider">bcra_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_oficial" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar oficial</field>
+        <field name="code">USD:oficial</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_blue" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar blue</field>
+        <field name="code">USD:blue</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_bolsa" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar bolsa</field>
+        <field name="code">USD:bolsa</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_contadoconliqui" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar contado con liquidación</field>
+        <field name="code">USD:contadoconliqui</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_tarjeta" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar tarjeta</field>
+        <field name="code">USD:tarjeta</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_mayorista" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar mayorista</field>
+        <field name="code">USD:mayorista</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_cripto" model="l10n_ar.rate.provider.currency">
+        <field name="name">Dólar cripto</field>
+        <field name="code">USD:cripto</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_euro" model="l10n_ar.rate.provider.currency">
+        <field name="name">Euro</field>
+        <field name="code">EUR:oficial</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_real" model="l10n_ar.rate.provider.currency">
+        <field name="name">Real brasileño</field>
+        <field name="code">BRL:oficial</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_chileno" model="l10n_ar.rate.provider.currency">
+        <field name="name">Peso chileno</field>
+        <field name="code">CLP:oficial</field>
+        <field name="provider">dolar_api</field>
+    </record>
+    <record id="provider_currency_dolar_api_uruguayo" model="l10n_ar.rate.provider.currency">
+        <field name="name">Peso uruguayo</field>
+        <field name="code">UYU:oficial</field>
+        <field name="provider">dolar_api</field>
+    </record>
+</odoo>

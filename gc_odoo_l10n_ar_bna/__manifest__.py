@@ -2,19 +2,17 @@
 
 {
     'name': "Gauchocode BNA Currencies",
-    'version': '16.0.2.0.1',
-    'summary': "Sincronización de tasas de cambio con el sitio del Banco de la Nación Argentina",
+    'version': '16.0.4.0.0',
+    'summary': "Sincronización de tasas de cambio desde múltiples proveedores",
     'author': 'GauchoCode',
     'website': 'https://www.gauchocode.com/',
     'category': "Accounting",
     'depends': ['base', 'account'],
     'data': [
         "data/bna_data.xml",
-        "security/security.xml",
         "security/ir.model.access.csv",
-        "views/res_config_settings_views.xml",
-        "views/bna_menues_views.xml",
-        "views/account_bna_currencies_views.xml",
+        "data/rate_provider_currency_data.xml",
+        "views/res_currency_views.xml",
         "data/ir_cron.xml",
     ],
     'application': False,

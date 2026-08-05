@@ -1,2 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_account_bna_currencies,BNA Currencies,model_account_bna_currencies,,1,1,1,1
+access_rate_provider_currency_user,Rate provider currencies,model_l10n_ar_rate_provider_currency,base.group_user,1,0,0,0
