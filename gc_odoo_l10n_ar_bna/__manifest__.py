@@ -2,7 +2,7 @@
 
 {
     'name': "Gauchocode BNA Currencies",
-    'version': '16.0.4.0.0',
+    'version': '16.0.4.0.1',
     'summary': "Sincronización de tasas de cambio desde múltiples proveedores",
     'author': 'GauchoCode',
     'website': 'https://www.gauchocode.com/',
