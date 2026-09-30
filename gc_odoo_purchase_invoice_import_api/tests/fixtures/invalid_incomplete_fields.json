@@ -1,0 +1,17 @@
+{
+  "_comment": "Payload deliberadamente incompleto (pero con los bloques top-level presentes) para probar que varios mensajes de error, cada uno con su path JSON, se acumulan en la misma pasada. Derivado del contrato v0.1 (ver valid_v01_single_line.json).",
+  "schema_version": "0.1",
+  "source": {"system": "radiant", "tenant_id": "t1", "idempotency_key": "", "sent_at": "2026-06-23T14:05:00-03:00"},
+  "target": {"company_id": 1, "journal_id": 12, "move_type": "in_invoice", "final_state": "draft"},
+  "partner": {"cuit": "33718285289", "odoo": {"partner_id": 581}},
+  "document": {
+    "invoice_date": "2026-06-23",
+    "point_of_sale": 2,
+    "invoice_number": 18,
+    "odoo": {"document_type_id": 1, "document_number": "00002-00000018"}
+  },
+  "lines": [
+    {"sequence": 1, "description": "Linea incompleta", "odoo": {}}
+  ],
+  "totals": {"net_amount": 0, "vat_amount": 0, "total_amount": 0}
+}

@@ -1,0 +1,432 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "GC Odoo Purchase Invoice Import API",
+    "description": "\nRecibe facturas de compra ya mapeadas a IDs de Odoo (contrato v0.1, integrador Radiant / \"Looking for Trouble\") y crea la factura de proveedor **en borrador**. Nunca publica la factura (`action_post()` explícitamente prohibido) ni recalcula/corrige los IDs de Odoo recibidos: solo verifica que existan.\n\n### Autenticación\nHTTP Basic Auth con las mismas credenciales que un usuario de Odoo usa para entrar al backend:\n```\nAuthorization: Basic base64(usuario:contraseña)\n```\nSe valida contra `res.users.authenticate` (mismo mecanismo que el login web), no hay token separado que generar ni rotar.\n\n### Confianza en los IDs de Odoo\nCampos como `partner.odoo.partner_id`, `lines[].odoo.product_id/account_id/tax_ids/uom_id/analytic_distribution`, `target.company_id/journal_id`, `document.odoo.document_type_id/currency_id` se usan tal cual los manda el proveedor. Solo se verifica que cada id referenciado EXISTA; si falta alguno, la respuesta es `400 validation_error` listando qué id falta, sin crear nada.\n\n### Partner ausente\nSi `partner.odoo.partner_id` no viene informado, se usa `partner.odoo.policy_if_missing`: `\"create\"` busca por CUIT y si no existe crea el contacto; cualquier otro valor (incluido `\"review\"` o ausente) deja la factura sin crear con `422 pending_review`.\n\n### Duplicados\nLa regla vigente es contacto + punto de venta + número de comprobante, implementada sobre los campos estándar de la localización argentina (`l10n_latam_document_type_id` + `l10n_latam_document_number`). Un duplicado no es un error técnico: responde HTTP 200 con `status: \"duplicate\"`.\n\n### Validación de montos\nNunca se confía en `validation.checks` del payload (es solo informativo, se guarda en el log). Se recalculan 5 chequeos propios (suma de líneas, IVA, total declarado, y el total de la factura ya creada en Odoo) con la tolerancia de `validation.tolerance` (o el parámetro de configuración si no viene). Si la diferencia supera la tolerancia, `validation.action_if_exceeded` decide: `\"observation\"` (default) crea igual con advertencias y `has_observations=true`; `\"reject\"` rechaza sin crear nada (o revierte la factura ya creada, si el chequeo post-creación es el que falla).\n\nVer DECISIONES.md del módulo para el detalle completo.\n",
+    "version": "2.0.0",
+    "contact": {
+      "name": "Gauchocode",
+      "url": "https://gauchocode.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Servidor actual"
+    }
+  ],
+  "security": [
+    {
+      "BasicAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/purchase-invoices": {
+      "post": {
+        "tags": [
+          "Purchase Invoices"
+        ],
+        "summary": "Importar una factura de compra (contrato v0.1)",
+        "description": "Valida la forma del payload, verifica que los IDs de Odoo referenciados existan, resuelve o crea el proveedor según policy_if_missing, detecta duplicados, valida montos con tolerancia propia y crea la factura de proveedor en borrador.",
+        "security": [
+          {
+            "BasicAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseInvoicePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Factura creada en borrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseInvoiceResponse"
+                },
+                "examples": {
+                  "creada": {
+                    "value": {
+                      "success": true,
+                      "status": "created",
+                      "document_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000002",
+                      "idempotency_key": "33718285289-1-00002-00000018",
+                      "message": "Factura FA-A 00002-00000018 creada en borrador.",
+                      "move_id": 123,
+                      "move_name": "FA-A 00002-00000018",
+                      "log_id": 45,
+                      "warnings": [],
+                      "details": [],
+                      "checks": [
+                        {"code": "lines_vs_net", "expected": 13130706.60, "actual": 13130706.60, "diff": 0, "passed": true},
+                        {"code": "vat_total", "expected": 2757448.39, "actual": 2757448.39, "diff": 0, "passed": true},
+                        {"code": "total", "expected": 15888154.99, "actual": 15888154.99, "diff": 0, "passed": true},
+                        {"code": "odoo_total", "expected": 15888154.99, "actual": 15888154.99, "diff": 0, "passed": true}
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Factura duplicada (idempotente, no es error técnico)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseInvoiceResponse"
+                },
+                "examples": {
+                  "duplicado": {
+                    "value": {
+                      "success": false,
+                      "status": "duplicate",
+                      "document_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000002",
+                      "idempotency_key": "33718285289-1-00002-00000018",
+                      "message": "Ya existe la factura FA-A 00002-00000018 para este comprobante.",
+                      "move_id": 123,
+                      "move_name": "FA-A 00002-00000018",
+                      "log_id": 46,
+                      "warnings": [],
+                      "details": [],
+                      "checks": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido/incompleto, id de Odoo referenciado inexistente, adjunto inválido o inconsistencia de montos fuera de tolerancia con action_if_exceeded=reject",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseInvoiceResponse"
+                },
+                "examples": {
+                  "invalido": {
+                    "value": {
+                      "success": false,
+                      "status": "validation_error",
+                      "document_id": null,
+                      "idempotency_key": null,
+                      "message": "Falta 'source.idempotency_key'.; Falta 'lines[0].unit_price'.",
+                      "log_id": 47,
+                      "warnings": [],
+                      "details": [
+                        "Falta 'source.idempotency_key'.",
+                        "Falta 'lines[0].unit_price'."
+                      ],
+                      "checks": []
+                    }
+                  },
+                  "id_inexistente": {
+                    "value": {
+                      "success": false,
+                      "status": "validation_error",
+                      "document_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000002",
+                      "idempotency_key": "33718285289-1-00002-00000018",
+                      "message": "lines[0].odoo.account_id: no existe account.account con id 999999999.",
+                      "log_id": 48,
+                      "warnings": [],
+                      "details": [
+                        "lines[0].odoo.account_id: no existe account.account con id 999999999."
+                      ],
+                      "checks": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Usuario/contraseña ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseInvoiceResponse"
+                },
+                "examples": {
+                  "sin_credenciales": {
+                    "value": {
+                      "status": "validation_error",
+                      "message": "Falta autenticación. Use: Authorization: Basic base64(usuario:contraseña)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Proveedor no resuelto y policy_if_missing distinto de 'create' (queda pendiente de revisión manual, no se crea la factura)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseInvoiceResponse"
+                },
+                "examples": {
+                  "pendiente_revision": {
+                    "value": {
+                      "success": false,
+                      "status": "pending_review",
+                      "document_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000002",
+                      "idempotency_key": "33718285289-1-00002-00000018",
+                      "message": "Proveedor no resuelto (CUIT 20222222223) y policy_if_missing='review': requiere revisión manual antes de crear la factura.",
+                      "log_id": 49,
+                      "warnings": [],
+                      "details": [],
+                      "checks": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado de procesamiento (sin detalles técnicos en la respuesta)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseInvoiceResponse"
+                },
+                "examples": {
+                  "error_interno": {
+                    "value": {
+                      "success": false,
+                      "status": "processing_error",
+                      "document_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000002",
+                      "message": "Ocurrió un error inesperado. Quedó registrado en el log de importación.",
+                      "log_id": 50,
+                      "warnings": [],
+                      "details": [],
+                      "checks": []
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BasicAuth": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "Mismas credenciales (usuario/contraseña) que un usuario de Odoo usa para entrar al backend. Validado contra res.users.authenticate."
+      }
+    },
+    "schemas": {
+      "PurchaseInvoiceSource": {
+        "type": "object",
+        "required": ["idempotency_key"],
+        "properties": {
+          "system": {"type": "string"},
+          "tenant_id": {"type": "string"},
+          "invoice_id": {"type": "string", "description": "UUID de la factura en el sistema del proveedor. Se devuelve como 'document_id' en la respuesta."},
+          "idempotency_key": {"type": "string"},
+          "sent_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "PurchaseInvoiceTargetOdoo": {
+        "type": "object",
+        "required": ["company_id", "journal_id", "move_type"],
+        "properties": {
+          "company_id": {"type": "integer"},
+          "journal_id": {"type": "integer"},
+          "move_type": {"type": "string", "enum": ["in_invoice", "in_refund"]},
+          "final_state": {"type": "string", "description": "Se ignora si no es 'draft': esta integración siempre crea en borrador."},
+          "final_state_reason": {"type": "string"}
+        }
+      },
+      "PurchaseInvoicePartnerOdoo": {
+        "type": "object",
+        "properties": {
+          "partner_id": {"type": "integer", "nullable": true, "description": "Si viene informado, se confía tal cual (solo se verifica que exista)."},
+          "resolution": {"type": "string"},
+          "policy_if_missing": {"type": "string", "enum": ["create", "review"], "description": "Solo se usa si partner_id viene vacío."},
+          "afip_responsibility_code": {"type": "string"},
+          "identification_type": {"type": "string"},
+          "state_id": {"type": "integer", "nullable": true}
+        }
+      },
+      "PurchaseInvoicePartner": {
+        "type": "object",
+        "required": ["cuit"],
+        "properties": {
+          "cuit": {"type": "string"},
+          "name": {"type": "string"},
+          "vat_condition": {"type": "string"},
+          "iibb_number": {"type": "string"},
+          "address": {"type": "string"},
+          "city": {"type": "string"},
+          "province": {"type": "string"},
+          "postal_code": {"type": "string"},
+          "odoo": {"$ref": "#/components/schemas/PurchaseInvoicePartnerOdoo"}
+        }
+      },
+      "PurchaseInvoiceDocumentOdoo": {
+        "type": "object",
+        "required": ["document_type_id"],
+        "properties": {
+          "document_type_id": {"type": "integer"},
+          "document_number": {"type": "string", "description": "Si no viene, se arma desde point_of_sale + invoice_number."},
+          "accounting_date": {"type": "string", "format": "date"},
+          "currency_id": {"type": "integer", "nullable": true},
+          "narration": {"type": "string"}
+        }
+      },
+      "PurchaseInvoiceDocument": {
+        "type": "object",
+        "required": ["invoice_date"],
+        "properties": {
+          "afip_code": {"type": "string"},
+          "invoice_type": {"type": "string"},
+          "letter": {"type": "string"},
+          "point_of_sale": {"type": "integer"},
+          "invoice_number": {"type": "integer"},
+          "invoice_date": {"type": "string", "format": "date"},
+          "due_date": {"type": "string", "format": "date", "nullable": true},
+          "currency": {"type": "string"},
+          "exchange_rate": {"type": "number"},
+          "payment_terms": {"type": "string", "nullable": true},
+          "cae": {"type": "string"},
+          "cae_due_date": {"type": "string", "format": "date"},
+          "customer_cuit": {"type": "string"},
+          "billing_period": {"type": "object", "nullable": true},
+          "odoo": {"$ref": "#/components/schemas/PurchaseInvoiceDocumentOdoo"}
+        }
+      },
+      "PurchaseInvoiceLineOdoo": {
+        "type": "object",
+        "properties": {
+          "product_id": {"type": "integer", "nullable": true, "description": "Al menos uno de product_id/account_id es obligatorio."},
+          "account_id": {"type": "integer", "nullable": true},
+          "tax_ids": {"type": "array", "items": {"type": "integer"}},
+          "uom_id": {"type": "integer", "nullable": true},
+          "analytic_distribution": {"type": "object", "description": "Claves: id de account.analytic.account como string. Valores: porcentaje."},
+          "mapping": {"type": "object"}
+        }
+      },
+      "PurchaseInvoiceLine": {
+        "type": "object",
+        "required": ["quantity", "unit_price", "description"],
+        "properties": {
+          "sequence": {"type": "integer"},
+          "product_code": {"type": "string", "nullable": true},
+          "description": {"type": "string"},
+          "quantity": {"type": "number"},
+          "unit_of_measure": {"type": "string", "nullable": true},
+          "unit_price": {"type": "number"},
+          "subtotal": {"type": "number"},
+          "vat_rate": {"type": "number"},
+          "odoo": {"$ref": "#/components/schemas/PurchaseInvoiceLineOdoo"}
+        }
+      },
+      "PurchaseInvoiceVatEntry": {
+        "type": "object",
+        "properties": {
+          "rate": {"type": "number"},
+          "base": {"type": "number"},
+          "amount": {"type": "number"},
+          "odoo_tax_id": {"type": "integer"}
+        }
+      },
+      "PurchaseInvoiceTaxes": {
+        "type": "object",
+        "properties": {
+          "vat": {"type": "array", "items": {"$ref": "#/components/schemas/PurchaseInvoiceVatEntry"}},
+          "perceptions": {"type": "array", "items": {"type": "object"}},
+          "internal_taxes_amount": {"type": "number"},
+          "exempt_amount": {"type": "number"},
+          "non_taxed_amount": {"type": "number"}
+        }
+      },
+      "PurchaseInvoiceTotals": {
+        "type": "object",
+        "required": ["net_amount", "vat_amount", "total_amount"],
+        "properties": {
+          "net_amount": {"type": "number"},
+          "vat_amount": {"type": "number"},
+          "perceptions_amount": {"type": "number"},
+          "internal_taxes_amount": {"type": "number"},
+          "total_amount": {"type": "number"}
+        }
+      },
+      "PurchaseInvoiceValidation": {
+        "type": "object",
+        "description": "'checks' e 'is_clean' son informativos del proveedor: nunca se usan para decidir, solo se guardan en el log. La validación real la hace esta API con 'tolerance' y 'action_if_exceeded'.",
+        "properties": {
+          "tolerance": {"type": "number"},
+          "action_if_exceeded": {"type": "string", "enum": ["observation", "reject"], "default": "observation"},
+          "checks": {"type": "array", "items": {"type": "object"}},
+          "observations": {"type": "array", "items": {"type": "string"}},
+          "is_clean": {"type": "boolean"}
+        }
+      },
+      "PurchaseInvoiceAttachment": {
+        "type": "object",
+        "properties": {
+          "file_name": {"type": "string"},
+          "mime_type": {"type": "string", "enum": ["application/pdf"]},
+          "content_base64": {"type": "string", "description": "PDF en base64. Se valida que decodifique y sea un PDF real (magic bytes %PDF). Nunca se guarda en el log crudo: se redacta a '<omitted N bytes>'."}
+        }
+      },
+      "PurchaseInvoicePayload": {
+        "type": "object",
+        "required": ["schema_version", "source", "target", "partner", "document", "lines", "totals"],
+        "properties": {
+          "schema_version": {"type": "string", "enum": ["0.1"]},
+          "source": {"$ref": "#/components/schemas/PurchaseInvoiceSource"},
+          "target": {"$ref": "#/components/schemas/PurchaseInvoiceTargetOdoo"},
+          "partner": {"$ref": "#/components/schemas/PurchaseInvoicePartner"},
+          "document": {"$ref": "#/components/schemas/PurchaseInvoiceDocument"},
+          "lines": {"type": "array", "minItems": 1, "items": {"$ref": "#/components/schemas/PurchaseInvoiceLine"}},
+          "taxes": {"$ref": "#/components/schemas/PurchaseInvoiceTaxes"},
+          "totals": {"$ref": "#/components/schemas/PurchaseInvoiceTotals"},
+          "validation": {"$ref": "#/components/schemas/PurchaseInvoiceValidation"},
+          "attachment": {"$ref": "#/components/schemas/PurchaseInvoiceAttachment"},
+          "result": {"type": "object", "description": "Eco del proveedor, no se usa."}
+        }
+      },
+      "PurchaseInvoiceCheck": {
+        "type": "object",
+        "properties": {
+          "code": {"type": "string", "enum": ["lines_vs_net", "line_subtotal[N]", "vat_total", "total", "odoo_total"]},
+          "expected": {"type": "number"},
+          "actual": {"type": "number"},
+          "diff": {"type": "number"},
+          "passed": {"type": "boolean"}
+        }
+      },
+      "PurchaseInvoiceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "status": {
+            "type": "string",
+            "enum": ["created", "duplicate", "validation_error", "pending_review", "processing_error"]
+          },
+          "document_id": {"type": "string", "nullable": true, "description": "source.invoice_id del payload."},
+          "idempotency_key": {"type": "string", "nullable": true},
+          "message": {"type": "string"},
+          "move_id": {"type": "integer", "nullable": true},
+          "move_name": {"type": "string", "nullable": true},
+          "log_id": {"type": "integer", "nullable": true},
+          "warnings": {"type": "array", "items": {"type": "string"}},
+          "details": {"type": "array", "items": {"type": "string"}},
+          "checks": {"type": "array", "items": {"$ref": "#/components/schemas/PurchaseInvoiceCheck"}}
+        }
+      }
+    }
+  }
+}

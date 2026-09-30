@@ -1,0 +1,116 @@
+{
+  "_comment": "Derivado del ejemplo de contrato v0.1 provisto por Radiant / integrador 'Looking for Trouble' en el ticket. Los 4 JSON reales de Looking for Trouble todavia NO fueron recibidos al momento de escribir estos fixtures (ver DECISIONES.md, seccion 'Fuera de alcance'). En test_payload_validator.py (pure python) los ids bajo *.odoo.* se usan tal cual, sin tocar una base real. En test_invoice_importer.py (TransactionCase) estos ids se sobreescriben en setUp con records creados en la propia base de test.",
+  "schema_version": "0.1",
+  "source": {
+    "system": "radiant",
+    "tenant_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000001",
+    "invoice_id": "b6f6c1d2-1e3a-4a3f-9c1e-000000000002",
+    "idempotency_key": "33718285289-1-00002-00000018",
+    "sent_at": "2026-06-23T14:05:00-03:00"
+  },
+  "target": {
+    "company_id": 1,
+    "journal_id": 12,
+    "move_type": "in_invoice",
+    "final_state": "draft",
+    "final_state_reason": "tenant_config_always_draft"
+  },
+  "partner": {
+    "cuit": "33718285289",
+    "name": "WFLUCAR",
+    "vat_condition": "IVA Responsable Inscripto",
+    "iibb_number": "90433718285289",
+    "address": "Belgrano 525",
+    "city": "Canals",
+    "province": "X",
+    "postal_code": "2650",
+    "odoo": {
+      "partner_id": 581,
+      "resolution": "matched",
+      "policy_if_missing": "review",
+      "afip_responsibility_code": "1",
+      "identification_type": "CUIT",
+      "state_id": 7
+    }
+  },
+  "document": {
+    "afip_code": "01",
+    "invoice_type": "FACTURA",
+    "letter": "A",
+    "point_of_sale": 2,
+    "invoice_number": 18,
+    "invoice_date": "2026-06-23",
+    "due_date": "2026-06-23",
+    "currency": "ARS",
+    "exchange_rate": 1,
+    "payment_terms": null,
+    "cae": "86251025478576",
+    "cae_due_date": "2026-07-03",
+    "customer_cuit": "30710457642",
+    "billing_period": {"from": "2026-02-01", "to": "2026-02-28"},
+    "odoo": {
+      "document_type_id": 1,
+      "document_number": "00002-00000018",
+      "accounting_date": "2026-06-23",
+      "currency_id": 19,
+      "narration": "CAE 86251025478576 (vto. 2026-07-03) · Radiant b6f6c1d2-1e3a-4a3f-9c1e-000000000002"
+    }
+  },
+  "lines": [
+    {
+      "sequence": 1,
+      "product_code": "00001",
+      "description": "SERVICIOS DE CONSULTORIA EXTERNA - ASESORAMIENTO ESTRATEGICO - Servicios Empresariales",
+      "quantity": 1,
+      "unit_of_measure": null,
+      "unit_price": 13130706.60,
+      "subtotal": 13130706.60,
+      "vat_rate": 21,
+      "odoo": {
+        "product_id": 345,
+        "account_id": 210,
+        "tax_ids": [7],
+        "uom_id": 1,
+        "analytic_distribution": {"33": 100},
+        "mapping": {"source": "rule", "rule_id": "a1c1d2e3-0000-0000-0000-000000000001", "status": "mapped"}
+      }
+    }
+  ],
+  "taxes": {
+    "vat": [{"rate": 21, "base": 13130706.60, "amount": 2757448.39, "odoo_tax_id": 7}],
+    "perceptions": [],
+    "internal_taxes_amount": 0,
+    "exempt_amount": 0,
+    "non_taxed_amount": 0
+  },
+  "totals": {
+    "net_amount": 13130706.60,
+    "vat_amount": 2757448.39,
+    "perceptions_amount": 0,
+    "internal_taxes_amount": 0,
+    "total_amount": 15888154.99
+  },
+  "validation": {
+    "tolerance": 1.00,
+    "action_if_exceeded": "observation",
+    "checks": [
+      {"code": "lines_vs_net", "expected": 13130706.60, "actual": 13130706.60, "diff": 0, "passed": true},
+      {"code": "vat_21", "expected": 2757448.39, "actual": 2757448.386, "diff": 0.004, "passed": true},
+      {"code": "total", "expected": 15888154.99, "actual": 15888154.99, "diff": 0, "passed": true},
+      {"code": "odoo_total", "expected": 15888154.99, "actual": null, "diff": null, "passed": null}
+    ],
+    "observations": [],
+    "is_clean": true
+  },
+  "attachment": {
+    "file_name": "33718285289_0002FCA00000018.pdf",
+    "mime_type": "application/pdf",
+    "content_base64": "JVBERi0xLjQKMSAwIG9iajw8IC9UeXBlIC9DYXRhbG9nID4+CmVuZG9iagp0cmFpbGVyPDwgL1Jvb3QgMSAwIFIgPj4KJSVFT0Y="
+  },
+  "result": {
+    "status": "pending",
+    "odoo_move_id": null,
+    "odoo_state": null,
+    "error": null
+  }
+}

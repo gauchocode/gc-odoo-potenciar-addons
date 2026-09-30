@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_invoice_import_log_list" model="ir.ui.view">
+        <field name="name">purchase.invoice.import.log.list</field>
+        <field name="model">purchase.invoice.import.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="received_date"/>
+                <field name="source_invoice_id"/>
+                <field name="idempotency_key"/>
+                <field name="partner_cuit"/>
+                <field name="document_number"/>
+                <field name="state" decoration-success="state == 'created'"
+                       decoration-info="state == 'duplicate'"
+                       decoration-warning="state == 'pending_review'"
+                       decoration-danger="state in ('validation_error', 'processing_error')"
+                       widget="badge"/>
+                <field name="has_observations" widget="boolean_toggle"/>
+                <field name="created_move_id"/>
+                <field name="duplicate_move_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_purchase_invoice_import_log_form" model="ir.ui.view">
+        <field name="name">purchase.invoice.import.log.form</field>
+        <field name="model">purchase.invoice.import.log</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="source_invoice_id"/>
+                            <field name="idempotency_key"/>
+                            <field name="partner_cuit"/>
+                            <field name="document_number"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="received_date"/>
+                            <field name="state"/>
+                            <field name="has_observations"/>
+                            <field name="created_move_id"/>
+                            <field name="duplicate_move_id"/>
+                            <field name="attachment_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Advertencias">
+                            <field name="warnings" widget="text" readonly="1"/>
+                        </page>
+                        <page string="Error">
+                            <field name="error_message" widget="text" readonly="1"/>
+                        </page>
+                        <page string="Checks propios">
+                            <field name="our_checks" widget="text" readonly="1"/>
+                        </page>
+                        <page string="Checks del proveedor">
+                            <field name="provider_checks" widget="text" readonly="1"/>
+                        </page>
+                        <page string="Payload crudo">
+                            <field name="raw_payload" widget="text" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_purchase_invoice_import_log_search" model="ir.ui.view">
+        <field name="name">purchase.invoice.import.log.search</field>
+        <field name="model">purchase.invoice.import.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="source_invoice_id"/>
+                <field name="idempotency_key"/>
+                <field name="partner_cuit"/>
+                <field name="document_number"/>
+                <field name="partner_id"/>
+                <filter string="Con observaciones" name="filter_has_observations"
+                        domain="[('has_observations', '=', True)]"/>
+                <separator/>
+                <filter string="Creado" name="filter_state_created" domain="[('state', '=', 'created')]"/>
+                <filter string="Duplicado" name="filter_state_duplicate" domain="[('state', '=', 'duplicate')]"/>
+                <filter string="Error de validación" name="filter_state_validation_error"
+                        domain="[('state', '=', 'validation_error')]"/>
+                <filter string="Pendiente de revisión" name="filter_state_pending_review"
+                        domain="[('state', '=', 'pending_review')]"/>
+                <filter string="Error de procesamiento" name="filter_state_processing_error"
+                        domain="[('state', '=', 'processing_error')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="group_by_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_purchase_invoice_import_log" model="ir.actions.act_window">
+        <field name="name">Importaciones de Facturas de Compra (API)</field>
+        <field name="res_model">purchase.invoice.import.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
